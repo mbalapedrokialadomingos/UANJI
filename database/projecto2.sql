@@ -136,6 +136,134 @@ ALTER SEQUENCE public.inscricoes_id_seq OWNED BY public.inscricoes.id;
 
 
 --
+-- Name: cursos_academicos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.cursos_academicos (
+    id integer NOT NULL,
+    nome character varying(150) NOT NULL,
+    descricao text,
+    codigo character varying(50),
+    duracao character varying(50),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.cursos_academicos OWNER TO postgres;
+
+--
+-- Name: cursos_academicos_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.cursos_academicos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.cursos_academicos_id_seq OWNER TO postgres;
+
+--
+-- Name: cursos_academicos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.cursos_academicos_id_seq OWNED BY public.cursos_academicos.id;
+
+--
+-- Name: disciplinas; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.disciplinas (
+    id integer NOT NULL,
+    nome character varying(150) NOT NULL,
+    codigo character varying(50),
+    descricao text,
+    carga_horaria integer DEFAULT 0,
+    curso_academico_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.disciplinas OWNER TO postgres;
+
+--
+-- Name: disciplinas_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.disciplinas_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.disciplinas_id_seq OWNER TO postgres;
+
+--
+-- Name: disciplinas_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.disciplinas_id_seq OWNED BY public.disciplinas.id;
+
+--
+-- Name: explicadores; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.explicadores (
+    id integer NOT NULL,
+    nome character varying(150) NOT NULL,
+    email character varying(150) NOT NULL,
+    especialidade character varying(150),
+    bio text,
+    utilizador_id integer,
+    estado character varying(30) DEFAULT 'ativo'::character varying,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.explicadores OWNER TO postgres;
+
+--
+-- Name: explicadores_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.explicadores_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.explicadores_id_seq OWNER TO postgres;
+
+--
+-- Name: explicadores_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.explicadores_id_seq OWNED BY public.explicadores.id;
+
+--
+-- Name: disciplina_explicadores; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.disciplina_explicadores (
+    disciplina_id integer NOT NULL,
+    explicador_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (disciplina_id, explicador_id)
+);
+
+
+ALTER TABLE public.disciplina_explicadores OWNER TO postgres;
+
+--
 -- Name: servicos; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -230,6 +358,27 @@ ALTER TABLE ONLY public.inscricoes ALTER COLUMN id SET DEFAULT nextval('public.i
 
 
 --
+-- Name: cursos_academicos id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.cursos_academicos ALTER COLUMN id SET DEFAULT nextval('public.cursos_academicos_id_seq'::regclass);
+
+
+--
+-- Name: disciplinas id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.disciplinas ALTER COLUMN id SET DEFAULT nextval('public.disciplinas_id_seq'::regclass);
+
+
+--
+-- Name: explicadores id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.explicadores ALTER COLUMN id SET DEFAULT nextval('public.explicadores_id_seq'::regclass);
+
+
+--
 -- Name: servicos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -281,6 +430,52 @@ COPY public.inscricoes (id, nome, email, formacao, data_inscricao, utilizador_id
 
 
 --
+-- Data for Name: cursos_academicos; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.cursos_academicos (id, nome, descricao, codigo, duracao, created_at) FROM stdin;
+1	Engenharia de Telecomunicações	Curso académico de engenharia orientado para redes, comunicação e infraestruturas.	ET	4 anos	2026-09-09 00:00:00
+2	Engenharia Informática	Curso académico de software, sistemas distribuídos e tecnologias digitais.	EI	4 anos	2026-09-09 00:00:00
+\.
+
+
+--
+-- Data for Name: disciplinas; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.disciplinas (id, nome, codigo, descricao, carga_horaria, curso_academico_id, created_at) FROM stdin;
+1	Processos Estocásticos	PE	Fundamentos de probabilidade, processos e análise estatística aplicada.	60	1	2026-09-09 00:00:00
+2	Redes	RED	Arquiteturas de rede, protocolos e conectividade prática.	70	1	2026-09-09 00:00:00
+3	Sistemas de Comunicação	SC	Modelagem de sistemas de comunicação e transmissão.	80	1	2026-09-09 00:00:00
+4	Computação	COMP	Fundamentos de algoritmos, programação e computação aplicados ao curso.	80	1	2026-09-09 00:00:00
+5	Arquitetura de Software	ASW	Princípios de desenho e construção de software.	60	2	2026-09-09 00:00:00
+6	Estruturas de Dados	ED	Estruturas e algoritmos fundamentais para engenharia informática.	70	2	2026-09-09 00:00:00
+\.
+
+
+--
+-- Data for Name: explicadores; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.explicadores (id, nome, email, especialidade, bio, utilizador_id, estado, created_at) FROM stdin;
+1	Ana Silva	ana.silva@instic.ao	Redes e Comunicação	Explicadora com foco em redes e infraestruturas.	1	ativo	2026-09-09 00:00:00
+2	Miguel Costa	miguel.costa@instic.ao	Computação e Software	Explicador com forte base em algoritmos e desenvolvimento.	\N	ativo	2026-09-09 00:00:00
+\.
+
+
+--
+-- Data for Name: disciplina_explicadores; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.disciplina_explicadores (disciplina_id, explicador_id, created_at) FROM stdin;
+2	1	2026-09-09 00:00:00
+3	1	2026-09-09 00:00:00
+5	2	2026-09-09 00:00:00
+6	2	2026-09-09 00:00:00
+\.
+
+
+--
 -- Data for Name: servicos; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -322,6 +517,27 @@ SELECT pg_catalog.setval('public.inscricoes_id_seq', 8, true);
 
 
 --
+-- Name: cursos_academicos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.cursos_academicos_id_seq', 2, true);
+
+
+--
+-- Name: disciplinas_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.disciplinas_id_seq', 6, true);
+
+
+--
+-- Name: explicadores_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.explicadores_id_seq', 2, true);
+
+
+--
 -- Name: servicos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
@@ -349,6 +565,38 @@ ALTER TABLE ONLY public.administradores
 
 ALTER TABLE ONLY public.administradores
     ADD CONSTRAINT administradores_usuario_key UNIQUE (usuario);
+
+
+--
+-- Name: cursos_academicos cursos_academicos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.cursos_academicos
+    ADD CONSTRAINT cursos_academicos_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: disciplinas disciplinas_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.disciplinas
+    ADD CONSTRAINT disciplinas_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: explicadores explicadores_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.explicadores
+    ADD CONSTRAINT explicadores_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: explicadores explicadores_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.explicadores
+    ADD CONSTRAINT explicadores_email_key UNIQUE (email);
 
 
 --
@@ -389,6 +637,46 @@ ALTER TABLE ONLY public.utilizadores
 
 ALTER TABLE ONLY public.utilizadores
     ADD CONSTRAINT utilizadores_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: disciplinas disciplinas_curso_academico_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.disciplinas
+    ADD CONSTRAINT disciplinas_curso_academico_id_fkey
+    FOREIGN KEY (curso_academico_id) REFERENCES public.cursos_academicos(id)
+    ON DELETE CASCADE;
+
+
+--
+-- Name: explicadores explicadores_utilizador_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.explicadores
+    ADD CONSTRAINT explicadores_utilizador_id_fkey
+    FOREIGN KEY (utilizador_id) REFERENCES public.utilizadores(id)
+    ON DELETE SET NULL;
+
+
+--
+-- Name: disciplina_explicadores disciplina_explicadores_disciplina_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.disciplina_explicadores
+    ADD CONSTRAINT disciplina_explicadores_disciplina_id_fkey
+    FOREIGN KEY (disciplina_id) REFERENCES public.disciplinas(id)
+    ON DELETE CASCADE;
+
+
+--
+-- Name: disciplina_explicadores disciplina_explicadores_explicador_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.disciplina_explicadores
+    ADD CONSTRAINT disciplina_explicadores_explicador_id_fkey
+    FOREIGN KEY (explicador_id) REFERENCES public.explicadores(id)
+    ON DELETE CASCADE;
 
 
 --

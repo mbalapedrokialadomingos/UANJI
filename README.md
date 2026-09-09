@@ -59,6 +59,37 @@ O ficheiro `database/projecto2.sql` contém as tabelas, relações, dados de exe
 4. Selecione a base `projecto2`, abra **Query Tool** e escolha **File > Open**.
 5. Abra `database/projecto2.sql` e execute o script.
 
+#### Recriar também a camada académica do Sprint 2
+
+Se a máquina ainda não tiver os objetos académicos criados, importa-se também o script dedicado:
+
+```bash
+psql -U postgres -d projecto2 -f database/sprint2_academico.sql
+```
+
+Esse script cria e liga as tabelas:
+
+- `cursos_academicos`
+- `disciplinas`
+- `explicadores`
+- `disciplina_explicadores`
+
+e carrega os dados iniciais de exemplo com cursos, disciplinas, explicadores e a associação entre disciplina e explicador.
+
+Se estiver a usar a mesma máquina com a base já criada, o passo mais simples é o seguinte:
+
+```bash
+psql -U postgres -d projecto2 -f database/sprint2_academico.sql
+```
+
+No final, confirme que a camada académica está lá:
+
+```bash
+psql -U postgres -d projecto2 -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('cursos_academicos','disciplinas','explicadores','disciplina_explicadores') ORDER BY table_name;"
+```
+
+Se o PostgreSQL da sua máquina tiver outra palavra-passe, altere o campo `password` em `db/database.js` para o valor correcto.
+
 ### 3. Confirmar a ligação da aplicação
 
 As credenciais usadas atualmente pela aplicação estão em `db/database.js`:

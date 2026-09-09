@@ -1067,6 +1067,628 @@ if (req.method === "GET" && req.url === "/formacoes") {
 }
 
 // =========================
+// GESTÃO ACADÉMICA (SPRINT 2)
+// =========================
+// Os endpoints abaixo deixam a estrutura académica independente da
+// estrutura de cursos profissionais/formações comercializadas.
+// A relação principal é: Curso Académico -> Disciplinas -> Explicadores.
+
+// Retorna todos os cursos académicos disponíveis.
+// O frontend poderá consumir este endpoint para mostrar a lista
+// inicial de cursos académicos no painel de inscrição ou no portal.
+if (req.method === "GET" && req.url === "/cursos-academicos") {
+    db.query(
+        `SELECT id, nome, descricao, codigo, duracao, created_at
+         FROM cursos_academicos
+         ORDER BY id ASC`
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(resultado.rows));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar cursos académicos:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao buscar cursos académicos." }));
+        });
+
+    return;
+}
+
+// Cria um curso académico novo.
+// Requer sessão de administrador e um payload com nome (obrigatório) e
+// descrição/código/duração opcionais. O corpo esperado é o mesmo padrão
+// já usado nas rotas de formações do projeto: JSON em request body.
+if (req.method === "POST" && req.url === "/cursos-academicos") {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const curso = JSON.parse(dados || "{}");
+            const nome = typeof curso.nome === "string" ? curso.nome.trim() : "";
+            const descricao = typeof curso.descricao === "string" ? curso.descricao.trim() : "";
+            const codigo = typeof curso.codigo === "string" ? curso.codigo.trim().toUpperCase() : "";
+            const duracao = typeof curso.duracao === "string" ? curso.duracao.trim() : "";
+
+            if (!nome) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Nome do curso académico é obrigatório." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `INSERT INTO cursos_academicos (nome, descricao, codigo, duracao)
+                 VALUES ($1, $2, $3, $4)
+                 RETURNING id, nome, descricao, codigo, duracao, created_at`,
+                [nome, descricao, codigo || null, duracao || null]
+            );
+
+            res.writeHead(201, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({
+                mensagem: "Curso académico criado com sucesso.",
+                curso: resultado.rows[0]
+            }));
+        } catch (erro) {
+            console.error("Erro ao criar curso académico:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao criar curso académico." }));
+        }
+    });
+
+    return;
+}
+
+// Consulta, atualiza e remove um curso académico específico.
+if ((req.method === "GET" || req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/cursos-academicos/")) {
+    const partes = req.url.split("/");
+    const id = Number(partes[2]);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Identificador de curso académico inválido." }));
+        return;
+    }
+
+    // Retorna as disciplinas associadas ao curso académico informado.
+    if (req.method === "GET" && partes.length >= 4 && partes[3] === "disciplinas") {
+        db.query(
+            `SELECT d.id, d.nome, d.codigo, d.descricao, d.carga_horaria,
+                    d.curso_academico_id, c.nome AS curso_nome
+             FROM disciplinas d
+             INNER JOIN cursos_academicos c ON c.id = d.curso_academico_id
+             WHERE d.curso_academico_id = $1
+             ORDER BY d.id ASC`,
+            [id]
+        )
+            .then((resultado) => {
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(resultado.rows));
+            })
+            .catch((erro) => {
+                console.error("Erro ao buscar disciplinas do curso académico:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao buscar disciplinas do curso académico." }));
+            });
+
+        return;
+    }
+
+    // Retorna um curso académico específico pelo id.
+    if (req.method === "GET") {
+        db.query(
+            `SELECT id, nome, descricao, codigo, duracao, created_at
+             FROM cursos_academicos
+             WHERE id = $1`,
+            [id]
+        )
+            .then((resultado) => {
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Curso académico não encontrado." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(resultado.rows[0]));
+            })
+            .catch((erro) => {
+                console.error("Erro ao consultar curso académico:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao consultar curso académico." }));
+            });
+
+        return;
+    }
+
+    // Atualiza um curso académico usando sessão de administrador.
+    if (req.method === "PUT") {
+        if (!sessaoEAdmin(req)) {
+            res.writeHead(401, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+            return;
+        }
+
+        let dados = "";
+
+        req.on("data", (parte) => {
+            dados += parte;
+        });
+
+        req.on("end", async () => {
+            try {
+                const curso = JSON.parse(dados || "{}");
+                const nome = typeof curso.nome === "string" ? curso.nome.trim() : "";
+                const descricao = typeof curso.descricao === "string" ? curso.descricao.trim() : "";
+                const codigo = typeof curso.codigo === "string" ? curso.codigo.trim().toUpperCase() : null;
+                const duracao = typeof curso.duracao === "string" ? curso.duracao.trim() : null;
+
+                if (!nome) {
+                    res.writeHead(400, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Nome do curso académico é obrigatório." }));
+                    return;
+                }
+
+                const resultado = await db.query(
+                    `UPDATE cursos_academicos
+                     SET nome = $1, descricao = $2, codigo = $3, duracao = $4
+                     WHERE id = $5
+                     RETURNING id, nome, descricao, codigo, duracao`,
+                    [nome, descricao, codigo, duracao, id]
+                );
+
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Curso académico não encontrado." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Curso académico atualizado com sucesso.", curso: resultado.rows[0] }));
+            } catch (erro) {
+                console.error("Erro ao atualizar curso académico:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao atualizar curso académico." }));
+            }
+        });
+
+        return;
+    }
+
+    // Remove um curso académico usando sessão de administrador.
+    if (req.method === "DELETE") {
+        if (!sessaoEAdmin(req)) {
+            res.writeHead(401, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+            return;
+        }
+
+        db.query(
+            `DELETE FROM cursos_academicos
+             WHERE id = $1
+             RETURNING id`,
+            [id]
+        )
+            .then((resultado) => {
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Curso académico não encontrado." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Curso académico removido com sucesso." }));
+            })
+            .catch((erro) => {
+                console.error("Erro ao remover curso académico:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao remover curso académico." }));
+            });
+
+        return;
+    }
+}
+
+// Retorna todas as disciplinas académicas.
+// Permite ao frontend mostrar a lista global de disciplinas ou
+// decidir qual curso académico está associado ao estudante.
+if (req.method === "GET" && req.url === "/disciplinas") {
+    db.query(
+        `SELECT d.id, d.nome, d.codigo, d.descricao, d.carga_horaria,
+                d.curso_academico_id, c.nome AS curso_nome
+         FROM disciplinas d
+         INNER JOIN cursos_academicos c ON c.id = d.curso_academico_id
+         ORDER BY d.id ASC`
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(resultado.rows));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar disciplinas:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao buscar disciplinas." }));
+        });
+
+    return;
+}
+
+// Cria uma disciplina associada a um curso académico.
+if (req.method === "POST" && req.url === "/disciplinas") {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const disciplina = JSON.parse(dados || "{}");
+            const nome = typeof disciplina.nome === "string" ? disciplina.nome.trim() : "";
+            const codigo = typeof disciplina.codigo === "string" ? disciplina.codigo.trim().toUpperCase() : "";
+            const descricao = typeof disciplina.descricao === "string" ? disciplina.descricao.trim() : "";
+            const carga_horaria = Number(disciplina.carga_horaria || 0);
+            const curso_id = Number(disciplina.curso_academico_id);
+
+            if (!nome || !Number.isInteger(curso_id) || curso_id <= 0) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Nome e curso académico são obrigatórios." }));
+                return;
+            }
+
+            const cursoExiste = await db.query("SELECT id FROM cursos_academicos WHERE id = $1", [curso_id]);
+            if (cursoExiste.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Curso académico não encontrado." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `INSERT INTO disciplinas (nome, codigo, descricao, carga_horaria, curso_academico_id)
+                 VALUES ($1, $2, $3, $4, $5)
+                 RETURNING id, nome, codigo, descricao, carga_horaria, curso_academico_id`,
+                [nome, codigo || null, descricao, carga_horaria, curso_id]
+            );
+
+            res.writeHead(201, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({
+                mensagem: "Disciplina criada com sucesso.",
+                disciplina: resultado.rows[0]
+            }));
+        } catch (erro) {
+            console.error("Erro ao criar disciplina:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao criar disciplina." }));
+        }
+    });
+
+    return;
+}
+
+// Consulta ou altera uma disciplina específica pelo id.
+if ((req.method === "GET" || req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/disciplinas/")) {
+    const partes = req.url.split("/");
+    const id = Number(partes[2]);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Identificador de disciplina inválido." }));
+        return;
+    }
+
+    // Retorna uma disciplina específica e o curso académico a que ela pertence.
+    if (req.method === "GET") {
+        db.query(
+            `SELECT d.id, d.nome, d.codigo, d.descricao, d.carga_horaria,
+                    d.curso_academico_id, c.nome AS curso_nome
+             FROM disciplinas d
+             INNER JOIN cursos_academicos c ON c.id = d.curso_academico_id
+             WHERE d.id = $1`,
+            [id]
+        )
+            .then((resultado) => {
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Disciplina não encontrada." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify(resultado.rows[0]));
+            })
+            .catch((erro) => {
+                console.error("Erro ao consultar disciplina:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao consultar disciplina." }));
+            });
+
+        return;
+    }
+
+    if (req.method === "PUT") {
+        if (!sessaoEAdmin(req)) {
+            res.writeHead(401, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+            return;
+        }
+
+        let dados = "";
+
+        req.on("data", (parte) => {
+            dados += parte;
+        });
+
+        req.on("end", async () => {
+            try {
+                const disciplina = JSON.parse(dados || "{}");
+                const nome = typeof disciplina.nome === "string" ? disciplina.nome.trim() : "";
+                const codigo = typeof disciplina.codigo === "string" ? disciplina.codigo.trim().toUpperCase() : null;
+                const descricao = typeof disciplina.descricao === "string" ? disciplina.descricao.trim() : "";
+                const carga_horaria = Number(disciplina.carga_horaria || 0);
+                const curso_id = Number(disciplina.curso_academico_id);
+
+                if (!nome || !Number.isInteger(curso_id) || curso_id <= 0) {
+                    res.writeHead(400, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Nome e curso académico são obrigatórios." }));
+                    return;
+                }
+
+                const cursoExiste = await db.query("SELECT id FROM cursos_academicos WHERE id = $1", [curso_id]);
+                if (cursoExiste.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Curso académico não encontrado." }));
+                    return;
+                }
+
+                const resultado = await db.query(
+                    `UPDATE disciplinas
+                     SET nome = $1, codigo = $2, descricao = $3, carga_horaria = $4, curso_academico_id = $5
+                     WHERE id = $6
+                     RETURNING id, nome, codigo, descricao, carga_horaria, curso_academico_id`,
+                    [nome, codigo, descricao, carga_horaria, curso_id, id]
+                );
+
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Disciplina não encontrada." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Disciplina atualizada com sucesso.", disciplina: resultado.rows[0] }));
+            } catch (erro) {
+                console.error("Erro ao atualizar disciplina:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao atualizar disciplina." }));
+            }
+        });
+
+        return;
+    }
+
+    if (req.method === "DELETE") {
+        if (!sessaoEAdmin(req)) {
+            res.writeHead(401, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+            return;
+        }
+
+        db.query(
+            `DELETE FROM disciplinas
+             WHERE id = $1
+             RETURNING id`,
+            [id]
+        )
+            .then((resultado) => {
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Disciplina não encontrada." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Disciplina removida com sucesso." }));
+            })
+            .catch((erro) => {
+                console.error("Erro ao remover disciplina:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao remover disciplina." }));
+            });
+
+        return;
+    }
+}
+
+// Lista os explicadores registados na plataforma e prepara o relacionamento
+// futuro com disciplinas: Um explicador pode vir a estar associado a várias disciplinas.
+if (req.method === "GET" && req.url === "/explicadores") {
+    db.query(
+        `SELECT id, nome, email, especialidade, bio, utilizador_id, estado
+         FROM explicadores
+         ORDER BY id ASC`
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(resultado.rows));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar explicadores:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao buscar explicadores." }));
+        });
+
+    return;
+}
+
+// Cria um explicador e deixa-o preparado para associar a disciplina.
+if (req.method === "POST" && req.url === "/explicadores") {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const explicador = JSON.parse(dados || "{}");
+            const nome = typeof explicador.nome === "string" ? explicador.nome.trim() : "";
+            const email = typeof explicador.email === "string" ? explicador.email.trim().toLowerCase() : "";
+            const especialidade = typeof explicador.especialidade === "string" ? explicador.especialidade.trim() : "";
+            const bio = typeof explicador.bio === "string" ? explicador.bio.trim() : "";
+            const utilizador_id = Number(explicador.utilizador_id || 0);
+
+            if (!nome || !email) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Nome e email são obrigatórios." }));
+                return;
+            }
+
+            if (utilizador_id > 0) {
+                const user = await db.query("SELECT id FROM utilizadores WHERE id = $1", [utilizador_id]);
+                if (user.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Utilizador de explicador não encontrado." }));
+                    return;
+                }
+            }
+
+            const resultado = await db.query(
+                `INSERT INTO explicadores (nome, email, especialidade, bio, utilizador_id, estado)
+                 VALUES ($1, $2, $3, $4, $5, 'ativo')
+                 RETURNING id, nome, email, especialidade, bio, utilizador_id, estado`,
+                [nome, email, especialidade || null, bio || null, utilizador_id || null]
+            );
+
+            res.writeHead(201, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Explicador criado com sucesso.", explicador: resultado.rows[0] }));
+        } catch (erro) {
+            console.error("Erro ao criar explicador:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao criar explicador." }));
+        }
+    });
+
+    return;
+}
+
+// Monta a relação de explicadores disponíveis para uma disciplina específica.
+// O frontend poderá usar este endpoint quando precisar mostrar o mapa:
+// curso académico -> disciplina -> explicadores.
+if (req.method === "GET" && req.url.startsWith("/disciplinas/") && req.url.endsWith("/explicadores")) {
+    const partes = req.url.split("/");
+    const disciplinaId = Number(partes[2]);
+
+    if (!Number.isInteger(disciplinaId) || disciplinaId <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Identificador de disciplina inválido." }));
+        return;
+    }
+
+    db.query(
+        `SELECT e.id, e.nome, e.email, e.especialidade, e.bio, e.estado
+         FROM disciplina_explicadores de
+         INNER JOIN explicadores e ON e.id = de.explicador_id
+         WHERE de.disciplina_id = $1
+         ORDER BY e.nome ASC`,
+        [disciplinaId]
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(resultado.rows));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar explicadores da disciplina:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao buscar explicadores da disciplina." }));
+        });
+
+    return;
+}
+
+// Associa um explicador a uma disciplina já existente.
+if (req.method === "POST" && req.url.startsWith("/disciplinas/") && req.url.includes("/explicadores")) {
+    const partes = req.url.split("/");
+    const disciplinaId = Number(partes[2]);
+
+    if (!Number.isInteger(disciplinaId) || disciplinaId <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Identificador de disciplina inválido." }));
+        return;
+    }
+
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const explicador_id = Number(payload.explicador_id);
+
+            if (!Number.isInteger(explicador_id) || explicador_id <= 0) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "explicador_id é obrigatório." }));
+                return;
+            }
+
+            const disciplinaExiste = await db.query("SELECT id FROM disciplinas WHERE id = $1", [disciplinaId]);
+            const explicadorExiste = await db.query("SELECT id FROM explicadores WHERE id = $1", [explicador_id]);
+
+            if (disciplinaExiste.rows.length === 0 || explicadorExiste.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Disciplina ou explicador não encontrado." }));
+                return;
+            }
+
+            await db.query(
+                `INSERT INTO disciplina_explicadores (disciplina_id, explicador_id)
+                 VALUES ($1, $2)
+                 ON CONFLICT (disciplina_id, explicador_id) DO NOTHING`,
+                [disciplinaId, explicador_id]
+            );
+
+            res.writeHead(201, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Explicador associado com sucesso à disciplina." }));
+        } catch (erro) {
+            console.error("Erro ao associar explicador à disciplina:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao associar explicador à disciplina." }));
+        }
+    });
+
+    return;
+}
+
+// =========================
 // SERVIÇO DE FICHEIROS ESTÁTICOS
 // =========================
 // Serve os ficheiros HTML, CSS, JavaScript e imagens da aplicação.

@@ -1,0 +1,139 @@
+-- Sprint 2: estrutura académica independente da formação comercial
+-- Curso Académico -> Disciplinas -> Explicadores
+
+CREATE TABLE IF NOT EXISTS public.cursos_academicos (
+    id integer NOT NULL,
+    nome character varying(150) NOT NULL,
+    descricao text,
+    codigo character varying(50),
+    duracao character varying(50),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE SEQUENCE IF NOT EXISTS public.cursos_academicos_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.cursos_academicos_id_seq OWNED BY public.cursos_academicos.id;
+ALTER TABLE ONLY public.cursos_academicos ALTER COLUMN id SET DEFAULT nextval('public.cursos_academicos_id_seq'::regclass);
+
+CREATE TABLE IF NOT EXISTS public.disciplinas (
+    id integer NOT NULL,
+    nome character varying(150) NOT NULL,
+    codigo character varying(50),
+    descricao text,
+    carga_horaria integer DEFAULT 0,
+    curso_academico_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE SEQUENCE IF NOT EXISTS public.disciplinas_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.disciplinas_id_seq OWNED BY public.disciplinas.id;
+ALTER TABLE ONLY public.disciplinas ALTER COLUMN id SET DEFAULT nextval('public.disciplinas_id_seq'::regclass);
+
+CREATE TABLE IF NOT EXISTS public.explicadores (
+    id integer NOT NULL,
+    nome character varying(150) NOT NULL,
+    email character varying(150) NOT NULL,
+    especialidade character varying(150),
+    bio text,
+    utilizador_id integer,
+    estado character varying(30) DEFAULT 'ativo'::character varying,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE SEQUENCE IF NOT EXISTS public.explicadores_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE public.explicadores_id_seq OWNED BY public.explicadores.id;
+ALTER TABLE ONLY public.explicadores ALTER COLUMN id SET DEFAULT nextval('public.explicadores_id_seq'::regclass);
+
+CREATE TABLE IF NOT EXISTS public.disciplina_explicadores (
+    disciplina_id integer NOT NULL,
+    explicador_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (disciplina_id, explicador_id)
+);
+
+-- Chaves primárias
+ALTER TABLE ONLY public.cursos_academicos
+    ADD CONSTRAINT cursos_academicos_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.disciplinas
+    ADD CONSTRAINT disciplinas_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.explicadores
+    ADD CONSTRAINT explicadores_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.explicadores
+    ADD CONSTRAINT explicadores_email_key UNIQUE (email);
+
+-- Constraints e referências
+ALTER TABLE ONLY public.disciplinas
+    ADD CONSTRAINT disciplinas_curso_academico_id_fkey
+    FOREIGN KEY (curso_academico_id) REFERENCES public.cursos_academicos(id)
+    ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.explicadores
+    ADD CONSTRAINT explicadores_utilizador_id_fkey
+    FOREIGN KEY (utilizador_id) REFERENCES public.utilizadores(id)
+    ON DELETE SET NULL;
+
+ALTER TABLE ONLY public.disciplina_explicadores
+    ADD CONSTRAINT disciplina_explicadores_disciplina_id_fkey
+    FOREIGN KEY (disciplina_id) REFERENCES public.disciplinas(id)
+    ON DELETE CASCADE;
+
+ALTER TABLE ONLY public.disciplina_explicadores
+    ADD CONSTRAINT disciplina_explicadores_explicador_id_fkey
+    FOREIGN KEY (explicador_id) REFERENCES public.explicadores(id)
+    ON DELETE CASCADE;
+
+-- Dados iniciais do INSTIC, mais coerentes com o Sprint 2.
+INSERT INTO public.cursos_academicos (nome, descricao, codigo, duracao)
+VALUES
+    ('Engenharia de Telecomunicações', 'Curso académico de engenharia orientado para redes, comunicação e infraestruturas.', 'ET', '4 anos'),
+    ('Engenharia Informática', 'Curso académico de software, sistemas distribuídos e tecnologias digitais.', 'EI', '4 anos')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.disciplinas (nome, codigo, descricao, carga_horaria, curso_academico_id)
+VALUES
+    ('Processos Estocásticos', 'PE', 'Fundamentos de probabilidade, processos e análise estatística aplicada.', 60, 1),
+    ('Redes', 'RED', 'Arquiteturas de rede, protocolos e conectividade prática.', 70, 1),
+    ('Sistemas de Comunicação', 'SC', 'Modelagem de sistemas de comunicação e transmissão.', 80, 1),
+    ('Computação', 'COMP', 'Fundamentos de algoritmos, programação e computação aplicados ao curso.', 80, 1),
+    ('Arquitetura de Software', 'ASW', 'Princípios de desenho e construção de software.', 60, 2),
+    ('Estruturas de Dados', 'ED', 'Estruturas e algoritmos fundamentais para engenharia informática.', 70, 2)
+ON CONFLICT DO NOTHING;
+
+-- Explicadores de teste, preparados para futura associação de disciplinas.
+INSERT INTO public.explicadores (nome, email, especialidade, bio, utilizador_id, estado)
+VALUES
+    ('Ana Silva', 'ana.silva@instic.ao', 'Redes e Comunicação', 'Explicadora com foco em redes e infraestruturas.', 1, 'ativo'),
+    ('Miguel Costa', 'miguel.costa@instic.ao', 'Computação e Software', 'Explicador com forte base em algoritmos e desenvolvimento.', NULL, 'ativo')
+ON CONFLICT (email) DO NOTHING;
+
+-- Associação do explicador às disciplinas que leciona.
+INSERT INTO public.disciplina_explicadores (disciplina_id, explicador_id)
+VALUES
+    (2, 1),
+    (3, 1),
+    (5, 2),
+    (6, 2)
+ON CONFLICT DO NOTHING;
