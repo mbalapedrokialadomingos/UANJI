@@ -1033,40 +1033,6 @@ if ((req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/fo
 
     return;
 }
-// Lista os serviços disponíveis para a página inicial.
-if (req.method === "GET" && req.url === "/servicos") {
-
-    db.query("SELECT * FROM servicos ORDER BY id ASC")
-
-        .then((resultado) => {
-
-            res.writeHead(200, {
-                "Content-Type": "application/json"
-            });
-
-            res.end(JSON.stringify(resultado.rows));
-
-        })
-
-        .catch((erro) => {
-
-            console.error(
-                "Erro ao buscar serviços:",
-                erro.message
-            );
-
-            res.writeHead(500, {
-                "Content-Type": "application/json"
-            });
-
-            res.end(JSON.stringify({
-                mensagem: "Erro ao buscar serviços."
-            }));
-
-        });
-
-    return;
-}
 
 // Lista as formações disponíveis para a página inicial e para o painel.
 if (req.method === "GET" && req.url === "/formacoes") {
