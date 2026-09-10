@@ -33,13 +33,6 @@ Campos principais:
 Representa o recurso humano que pode apoiar disciplinas do curso académico.
 
 Campos principais:
-- id
-- nome
-- email
-- especialidade
-- bio
-- utilizador_id
-- estado
 
 ### Relacionamento disciplina_explicadores
 
@@ -84,7 +77,6 @@ Método: GET
 Objetivo: consultar um curso académico específico.
 
 Parâmetros:
-- id na rota
 
 Resposta 200: objeto curso académico.
 
@@ -113,7 +105,6 @@ Método: GET
 Objetivo: retornar todas as disciplinas de um curso académico.
 
 Parâmetros:
-- id do curso académico na rota.
 
 Resposta 200: array JSON com disciplinas.
 
@@ -198,6 +189,60 @@ Body esperado:
   "especialidade": "Redes e Comunicação",
   "bio": "Explicadora com foco em redes e infraestruturas.",
   "utilizador_id": 1
+}
+
+### PUT /explicadores/:id
+
+Método: PUT
+
+Objetivo: atualizar os dados de um explicador no painel administrativo.
+
+Autorização: apenas administrador autenticado.
+
+### DELETE /explicadores/:id
+
+Método: DELETE
+
+Objetivo: remover um explicador e as suas associações académicas.
+
+Autorização: apenas administrador autenticado.
+
+### POST /solicitacoes-apoio
+
+Método: POST
+
+Objetivo: permitir que um aluno autenticado solicite apoio a um explicador associado à disciplina.
+
+Body esperado:
+{
+  "disciplina_id": 2,
+  "explicador_id": 1,
+  "mensagem": "Preciso de apoio nesta disciplina."
+}
+
+Resposta 201: objeto com mensagem e solicitação criada.
+
+### GET /solicitacoes-apoio
+
+Método: GET
+
+Objetivo: listar as solicitações de apoio no painel administrativo.
+
+Autorização: apenas administrador autenticado.
+
+### PATCH /solicitacoes-apoio/:id
+
+Método: PATCH
+
+Objetivo: atualizar o estado de uma solicitação.
+
+Autorização: apenas administrador autenticado.
+
+Estados aceites: `pendente`, `aceite`, `recusada`.
+
+Body esperado:
+{
+  "estado": "aceite"
 }
 
 ## Possíveis erros

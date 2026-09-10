@@ -1381,7 +1381,7 @@ if (req.method === "POST" && req.url === "/disciplinas") {
 }
 
 // Consulta ou altera uma disciplina específica pelo id.
-if ((req.method === "GET" || req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/disciplinas/")) {
+if ((req.method === "GET" || req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/disciplinas/") && !req.url.endsWith("/explicadores")) {
     const partes = req.url.split("/");
     const id = Number(partes[2]);
 
@@ -1592,6 +1592,92 @@ if (req.method === "POST" && req.url === "/explicadores") {
     return;
 }
 
+// Atualiza ou remove um explicador através do painel administrativo.
+if ((req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/explicadores/")) {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    const id = Number(req.url.split("/").pop());
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Identificador de explicador inválido." }));
+        return;
+    }
+
+    if (req.method === "DELETE") {
+        db.query(
+            "DELETE FROM explicadores WHERE id = $1 RETURNING id",
+            [id]
+        )
+            .then((resultado) => {
+                if (resultado.rows.length === 0) {
+                    res.writeHead(404, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Explicador não encontrado." }));
+                    return;
+                }
+
+                res.writeHead(200, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Explicador removido com sucesso." }));
+            })
+            .catch((erro) => {
+                console.error("Erro ao remover explicador:", erro.message);
+                res.writeHead(500, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Erro ao remover explicador." }));
+            });
+
+        return;
+    }
+
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const nome = typeof payload.nome === "string" ? payload.nome.trim() : "";
+            const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
+            const especialidade = typeof payload.especialidade === "string" ? payload.especialidade.trim() : "";
+            const bio = typeof payload.bio === "string" ? payload.bio.trim() : "";
+
+            if (!nome || !email) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Nome e email são obrigatórios." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `UPDATE explicadores
+                 SET nome = $1, email = $2, especialidade = $3, bio = $4
+                 WHERE id = $5
+                 RETURNING id, nome, email, especialidade, bio, utilizador_id, estado`,
+                [nome, email, especialidade || null, bio || null, id]
+            );
+
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Explicador não encontrado." }));
+                return;
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Explicador atualizado com sucesso.", explicador: resultado.rows[0] }));
+        } catch (erro) {
+            console.error("Erro ao atualizar explicador:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao atualizar explicador." }));
+        }
+    });
+
+    return;
+}
+
 // Monta a relação de explicadores disponíveis para uma disciplina específica.
 // O frontend poderá usar este endpoint quando precisar mostrar o mapa:
 // curso académico -> disciplina -> explicadores.
@@ -1682,6 +1768,171 @@ if (req.method === "POST" && req.url.startsWith("/disciplinas/") && req.url.incl
             console.error("Erro ao associar explicador à disciplina:", erro.message);
             res.writeHead(500, { "Content-Type": "application/json" });
             res.end(JSON.stringify({ mensagem: "Erro ao associar explicador à disciplina." }));
+        }
+    });
+
+    return;
+}
+
+// Regista um pedido de apoio feito por um aluno autenticado.
+// A disciplina e o explicador devem estar associados no backend antes do pedido.
+if (req.method === "POST" && req.url === "/solicitacoes-apoio") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && typeof sessao === "object" && sessao.email
+        ? sessao.email
+        : null;
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Precisa de iniciar sessão para solicitar apoio." }));
+        return;
+    }
+
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const disciplinaId = Number(payload.disciplina_id);
+            const explicadorId = Number(payload.explicador_id);
+            const mensagem = typeof payload.mensagem === "string" ? payload.mensagem.trim() : "";
+
+            if (!Number.isInteger(disciplinaId) || disciplinaId <= 0 || !Number.isInteger(explicadorId) || explicadorId <= 0 || !mensagem) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Disciplina, explicador e mensagem são obrigatórios." }));
+                return;
+            }
+
+            const utilizador = await db.query(
+                "SELECT id FROM utilizadores WHERE email = $1",
+                [emailUtilizador]
+            );
+            const associacao = await db.query(
+                `SELECT d.id AS disciplina_id, e.id AS explicador_id
+                 FROM disciplina_explicadores de
+                 INNER JOIN disciplinas d ON d.id = de.disciplina_id
+                 INNER JOIN explicadores e ON e.id = de.explicador_id
+                 WHERE d.id = $1 AND e.id = $2 AND e.estado = 'ativo'`,
+                [disciplinaId, explicadorId]
+            );
+
+            if (utilizador.rows.length === 0) {
+                res.writeHead(401, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Utilizador autenticado não encontrado." }));
+                return;
+            }
+
+            if (associacao.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "O explicador não está associado a esta disciplina." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `INSERT INTO solicitacoes_apoio (utilizador_id, disciplina_id, explicador_id, mensagem)
+                 VALUES ($1, $2, $3, $4)
+                 RETURNING id, utilizador_id, disciplina_id, explicador_id, mensagem, estado, created_at`,
+                [utilizador.rows[0].id, disciplinaId, explicadorId, mensagem]
+            );
+
+            res.writeHead(201, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({
+                mensagem: "Solicitação de apoio enviada com sucesso.",
+                solicitacao: resultado.rows[0]
+            }));
+        } catch (erro) {
+            console.error("Erro ao criar solicitação de apoio:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao enviar solicitação de apoio." }));
+        }
+    });
+
+    return;
+}
+
+// Permite ao administrador acompanhar as solicitações feitas pelos alunos.
+if (req.method === "GET" && req.url === "/solicitacoes-apoio") {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    db.query(
+        `SELECT s.id, s.mensagem, s.estado, s.created_at,
+                u.nome AS aluno_nome, u.email AS aluno_email,
+                d.nome AS disciplina_nome, e.nome AS explicador_nome
+         FROM solicitacoes_apoio s
+         INNER JOIN utilizadores u ON u.id = s.utilizador_id
+         INNER JOIN disciplinas d ON d.id = s.disciplina_id
+         INNER JOIN explicadores e ON e.id = s.explicador_id
+         ORDER BY s.id DESC`
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(resultado.rows));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar solicitações de apoio:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao buscar solicitações de apoio." }));
+        });
+
+    return;
+}
+
+// Atualiza o estado de uma solicitação de apoio no painel administrativo.
+if (req.method === "PATCH" && req.url.startsWith("/solicitacoes-apoio/")) {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    const id = Number(req.url.split("/").pop());
+    const estadosPermitidos = ["pendente", "aceite", "recusada"];
+    let dados = "";
+
+    req.on("data", (parte) => {
+        dados += parte;
+    });
+
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const estado = typeof payload.estado === "string" ? payload.estado.trim().toLowerCase() : "";
+
+            if (!Number.isInteger(id) || id <= 0 || !estadosPermitidos.includes(estado)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Solicitação ou estado inválido." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `UPDATE solicitacoes_apoio
+                 SET estado = $1
+                 WHERE id = $2
+                 RETURNING id, estado`,
+                [estado, id]
+            );
+
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Solicitação de apoio não encontrada." }));
+                return;
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Estado da solicitação atualizado.", solicitacao: resultado.rows[0] }));
+        } catch (erro) {
+            console.error("Erro ao atualizar solicitação de apoio:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao atualizar solicitação de apoio." }));
         }
     });
 

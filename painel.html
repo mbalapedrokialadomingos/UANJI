@@ -23,8 +23,10 @@
 
             <nav class="painel-menu" aria-label="Menu do painel">
                 <a href="#" class="active">Dashboard</a>
-                <a href="#">Formações</a>
-                <a href="#">Inscrições</a>
+                <a href="#gestaoFormacoes">Formações</a>
+                <a href="#inscricoes">Inscrições</a>
+                <a href="#gestaoAcademica">Gestão académica</a>
+                <a href="#solicitacoesApoio">Solicitações de apoio</a>
                 <a href="#">Configurações</a>
             </nav>
         </aside>
@@ -42,7 +44,79 @@
                 <p class="welcome-text">Bem-vindo ao painel!</p>
             </section>
 
-            <section class="panel-card">
+            <details id="gestaoAcademica" class="panel-card admin-collapsible">
+                <summary class="admin-section-summary"><span>Gestão académica</span><small>cursos, disciplinas, explicadores e associações</small></summary>
+                <div class="section-header">
+                    <div>
+                        <p class="eyebrow">Sprint 2</p>
+                        <h2>Gestão académica</h2>
+                    </div>
+                    <span id="mensagemAcademica" class="mensagem"></span>
+                </div>
+
+                <div class="admin-academia-grid">
+                    <form id="formCursoAcademico" class="form-panel admin-academia-form">
+                        <h3 id="tituloCursoAcademico">Adicionar curso académico</h3>
+                        <input type="hidden" id="cursoAcademicoId">
+                        <div class="campo"><label for="nomeCursoAcademico">Nome</label><input id="nomeCursoAcademico" required></div>
+                        <div class="campo"><label for="descricaoCursoAcademico">Descrição</label><textarea id="descricaoCursoAcademico" rows="3"></textarea></div>
+                        <div class="grid-duas-colunas">
+                            <div class="campo"><label for="codigoCursoAcademico">Código</label><input id="codigoCursoAcademico"></div>
+                            <div class="campo"><label for="duracaoCursoAcademico">Duração</label><input id="duracaoCursoAcademico" placeholder="Ex.: 4 anos"></div>
+                        </div>
+                        <div class="admin-form-actions"><button class="btn btn-primary" type="submit">Guardar curso</button><button id="btnCancelarCurso" class="btn btn-ghost" type="button" hidden>Cancelar</button></div>
+                    </form>
+
+                    <form id="formDisciplinaAcademica" class="form-panel admin-academia-form">
+                        <h3 id="tituloDisciplinaAcademica">Adicionar disciplina</h3>
+                        <input type="hidden" id="disciplinaAcademicaId">
+                        <div class="campo"><label for="nomeDisciplinaAcademica">Nome</label><input id="nomeDisciplinaAcademica" required></div>
+                        <div class="campo"><label for="descricaoDisciplinaAcademica">Descrição</label><textarea id="descricaoDisciplinaAcademica" rows="3"></textarea></div>
+                        <div class="grid-duas-colunas">
+                            <div class="campo"><label for="codigoDisciplinaAcademica">Código</label><input id="codigoDisciplinaAcademica"></div>
+                            <div class="campo"><label for="cargaDisciplinaAcademica">Carga horária</label><input id="cargaDisciplinaAcademica" type="number" min="0" value="0"></div>
+                        </div>
+                        <div class="campo"><label for="cursoDisciplinaAcademica">Curso académico</label><select id="cursoDisciplinaAcademica" required></select></div>
+                        <div class="admin-form-actions"><button class="btn btn-primary" type="submit">Guardar disciplina</button><button id="btnCancelarDisciplina" class="btn btn-ghost" type="button" hidden>Cancelar</button></div>
+                    </form>
+
+                    <form id="formExplicadorAcademico" class="form-panel admin-academia-form">
+                        <h3 id="tituloExplicadorAcademico">Adicionar explicador</h3>
+                        <input type="hidden" id="explicadorAcademicoId">
+                        <div class="campo"><label for="nomeExplicadorAcademico">Nome</label><input id="nomeExplicadorAcademico" required></div>
+                        <div class="campo"><label for="emailExplicadorAcademico">Email</label><input id="emailExplicadorAcademico" type="email" required></div>
+                        <div class="campo"><label for="especialidadeExplicadorAcademico">Especialidade</label><input id="especialidadeExplicadorAcademico"></div>
+                        <div class="campo"><label for="bioExplicadorAcademico">Biografia</label><textarea id="bioExplicadorAcademico" rows="3"></textarea></div>
+                        <div class="admin-form-actions"><button class="btn btn-primary" type="submit">Guardar explicador</button><button id="btnCancelarExplicador" class="btn btn-ghost" type="button" hidden>Cancelar</button></div>
+                    </form>
+
+                    <form id="formAssociacaoAcademica" class="form-panel admin-academia-form">
+                        <h3>Associar explicador</h3>
+                        <div class="campo"><label for="disciplinaAssociacao">Disciplina</label><select id="disciplinaAssociacao" required></select></div>
+                        <div class="campo"><label for="explicadorAssociacao">Explicador</label><select id="explicadorAssociacao" required></select></div>
+                        <button class="btn btn-primary" type="submit">Criar associação</button>
+                        <p class="form-help">A associação controla quais explicadores aparecem em cada disciplina.</p>
+                    </form>
+                </div>
+
+                <div class="admin-academia-listas">
+                    <div><h3>Cursos académicos</h3><div id="listaCursosAcademicosAdmin" class="admin-resource-list"></div></div>
+                    <div><h3>Disciplinas</h3><div id="listaDisciplinasAcademicasAdmin" class="admin-resource-list"></div></div>
+                    <div><h3>Explicadores</h3><div id="listaExplicadoresAcademicosAdmin" class="admin-resource-list"></div></div>
+                </div>
+            </details>
+
+            <details id="solicitacoesApoio" class="panel-card admin-collapsible">
+                <summary class="admin-section-summary"><span>Solicitações de apoio</span><small>acompanhar e atualizar pedidos dos alunos</small></summary>
+                <div class="section-header">
+                    <div><p class="eyebrow">Atendimento</p><h2>Solicitações de apoio</h2></div>
+                    <span id="contadorSolicitacoesApoio" class="badge">A carregar</span>
+                </div>
+                <div id="listaSolicitacoesApoio" class="admin-resource-list"></div>
+            </details>
+
+            <details id="gestaoFormacoes" class="panel-card admin-collapsible">
+                <summary class="admin-section-summary"><span>Adicionar formação</span><small>criar ou editar formações comerciais</small></summary>
                 <div class="section-header">
                     <div>
                         <p class="eyebrow">Catálogo</p>
@@ -82,9 +156,10 @@
                 </form>
 
                 <p id="mensagemFormacao" class="mensagem"></p>
-            </section>
+            </details>
 
-            <section class="panel-card">
+            <details id="formacoesPublicadas" class="panel-card admin-collapsible">
+                <summary class="admin-section-summary"><span>Formações publicadas</span><small>pesquisar e remover formações do catálogo</small></summary>
                 <div class="section-header">
                     <div>
                         <p class="eyebrow">Gestão do catálogo</p>
@@ -95,9 +170,10 @@
 
                 <div id="listaFormacoesAdmin" class="formacoes-admin-lista"></div>
                 <p id="mensagemListaFormacoes" class="mensagem"></p>
-            </section>
+            </details>
 
-            <section class="panel-card">
+            <details id="inscricoes" class="panel-card admin-collapsible">
+                <summary class="admin-section-summary"><span>Inscrições</span><small>consultar e atualizar estados</small></summary>
                 <div class="section-header">
                     <h2>Inscrições</h2>
                     <span id="contadorInscricoes" class="badge">A carregar</span>
@@ -119,11 +195,12 @@
                         <tbody id="listaInscricoes"></tbody>
                     </table>
                 </div>
-            </section>
+            </details>
         </main>
     </div>
 
     <script src="js/painel.js"></script>
+    <script src="js/academico-admin.js"></script>
 
 </body>
 

@@ -8,8 +8,6 @@ const conteudoModal = document.getElementById("conteudoModal");
 
 const fecharModal = document.getElementById("fecharModal");
 
-const btnformacoes = document.getElementById("btnformacoes");
-
 const btnLoginPrincipal = document.getElementById("btnLoginPrincipal");
 
 let utilizadorAtual = null;
@@ -114,13 +112,17 @@ function mostrarFormularioInscricao(formacao) {
 }
 
 // Mostra o modal de autenticação com a opção de login ou criação de conta.
-function mostrarModalAutenticacao(formacao = null) {
+function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
     const tituloAutenticacao = formacao
         ? "Inscrever-me"
-        : "Entrar na minha conta";
+        : aposAutenticacao
+            ? "Entrar para solicitar apoio"
+            : "Entrar na minha conta";
     const textoAutenticacao = formacao
         ? `Para continuar a inscrição em <strong>${formacao.nome}</strong>, entra na tua conta ou cria uma nova.`
-        : "Entra na tua conta para consultar as tuas formações e inscrições.";
+        : aposAutenticacao
+            ? "Entra na tua conta para enviar uma solicitação ao explicador."
+            : "Entra na tua conta para consultar as tuas formações e inscrições.";
 
     conteudoModal.innerHTML = `
         <div class="modal-formacao auth-modal">
@@ -206,6 +208,9 @@ function mostrarModalAutenticacao(formacao = null) {
 
                 if (formacao) {
                     mostrarFormularioInscricao(formacao);
+                } else if (aposAutenticacao) {
+                    fecharModalAtual();
+                    aposAutenticacao();
                 } else {
                     window.location.href = "/aluno.html";
                 }
@@ -253,6 +258,9 @@ function mostrarModalAutenticacao(formacao = null) {
 
                     if (formacao) {
                         mostrarFormularioInscricao(formacao);
+                    } else if (aposAutenticacao) {
+                        fecharModalAtual();
+                        aposAutenticacao();
                     } else {
                         window.location.href = "/aluno.html";
                     }
@@ -277,16 +285,6 @@ btnLoginPrincipal.addEventListener("click", async () => {
 
     mostrarModalAutenticacao();
 });
-
-btnformacoes.addEventListener("click", () => {
-
-    document.getElementById("formacoes")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
-
-});
-
 
 // =========================
 // CARREGAR FORMAÇÕES
