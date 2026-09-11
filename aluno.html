@@ -3,61 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Área do aluno | UNJILA</title>
+    <title>Área do aluno</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="aluno-page">
     <main class="aluno-shell">
         <nav class="aluno-navbar" aria-label="Navegação da área do aluno">
-            <a class="aluno-brand" href="/" aria-label="UNJILA - página inicial">
+            <a class="aluno-brand" href="/" aria-label="Página inicial">
                 <span class="aluno-brand-mark">U</span>
                 <span><strong>UNJILA</strong><small>Área académica</small></span>
             </a>
             <div class="aluno-nav-links">
-                <a href="#academiaAluno">Explorar academia</a>
+                <a href="#perfilAluno">Meu perfil</a>
                 <a href="#minhasFormacoes">Minhas formações</a>
-                <a href="/" class="aluno-nav-secondary">Página inicial</a>
-                <button id="btnLogoutAluno" class="btn btn-ghost btn-small" type="button">Sair</button>
+                <button id="btnLogoutAluno" class="btn btn-ghost btn-small" type="button">Terminar sessão</button>
             </div>
         </nav>
 
-        <section class="aluno-hero" aria-labelledby="tituloBoasVindas">
+        <section class="aluno-hero" aria-labelledby="nomeAluno">
             <div class="aluno-hero-content">
-                <p class="eyebrow aluno-eyebrow">Área do estudante</p>
-                <h1 id="tituloBoasVindas">Olá, <span id="nomeAluno">Aluno</span>.</h1>
-                <p>Encontra a disciplina que precisas, conhece os explicadores disponíveis e continua a construir o teu percurso.</p>
+                <h1 id="nomeAluno">Aluno</h1>
+                <p>Encontra disciplinas, consulta explicadores e acompanha o teu percurso académico.</p>
             </div>
-            <div class="aluno-hero-accent" aria-hidden="true"><span>UNJILA</span><strong>Aprender com direção.</strong></div>
         </section>
 
-        <section class="aluno-resumo" aria-label="Resumo da área do aluno">
-            <article class="aluno-resumo-card aluno-resumo-primary"><span class="resumo-icon" aria-hidden="true">▦</span><div><strong id="totalInscricoes">0</strong><span>formações inscritas</span></div></article>
-            <article class="aluno-resumo-card"><span class="resumo-icon" aria-hidden="true">⌁</span><div><strong id="totalCursosAcademicos">—</strong><span>cursos académicos</span></div></article>
-            <article class="aluno-resumo-card"><span class="resumo-icon" aria-hidden="true">◌</span><div><strong id="totalDisciplinasAcademicas">—</strong><span>disciplinas para explorar</span></div></article>
-        </section>
-
-        <section id="academiaAluno" class="aluno-section academia-aluno-section" aria-labelledby="tituloAcademiaAluno">
+        <section id="perfilAluno" class="aluno-section aluno-profile-section" aria-labelledby="tituloPerfilAluno">
             <div class="aluno-section-heading">
-                <div><p class="eyebrow">Descoberta académica</p><h2 id="tituloAcademiaAluno">Encontra o teu próximo apoio</h2></div>
-                <p>Pesquisa por disciplina ou filtra pelo curso para encontrar explicadores associados.</p>
+                <div><h2 id="tituloPerfilAluno">Meu perfil</h2></div>
             </div>
-
-            <div class="aluno-search-panel">
-                <label class="aluno-search-field" for="pesquisaDisciplina"><span>Pesquisar disciplina</span><div><span aria-hidden="true">⌕</span><input id="pesquisaDisciplina" type="search" placeholder="Ex.: Redes, Computação..." autocomplete="off"></div></label>
-                <label class="aluno-filter-field" for="filtroCurso"><span>Curso académico</span><select id="filtroCurso"><option value="">Todos os cursos académicos</option></select></label>
-                <button id="btnLimparPesquisa" class="btn btn-ghost" type="button">Limpar</button>
+            <div class="aluno-profile-card">
+                <div><span>Nome</span><strong id="perfilNomeAluno">A carregar...</strong></div>
+                <div><span>Email</span><strong id="perfilEmailAluno">A carregar...</strong></div>
             </div>
-            <div id="estadoAcademia" class="status-message aluno-status" role="status" aria-live="polite"></div>
+        </section>
 
-            <div class="aluno-subsection-heading"><div><p class="eyebrow">Percursos disponíveis</p><h3>Cursos académicos</h3></div><span id="contadorCursos" class="section-count"></span></div>
-            <div id="listaCursosAcademicos" class="academia-cursos"></div>
-
-            <div class="aluno-subsection-heading aluno-disciplines-heading"><div><p class="eyebrow">Explora por conteúdo</p><h3>Disciplinas</h3></div><span id="contadorDisciplinas" class="section-count"></span></div>
-            <div id="listaDisciplinas" class="academia-resultados"></div>
+        <section id="solicitacoesApoioAluno" class="aluno-section aluno-support-section" aria-labelledby="tituloApoioAluno">
+            <div class="aluno-section-heading">
+                <div><h2 id="tituloApoioAluno">Solicitações de Apoio</h2></div>
+            </div>
+            <div class="aluno-support-card">
+                <div id="listaSolicitacoesAluno" class="lista-solicitacoes-aluno"><p class="empty-state">A carregar solicitações...</p></div>
+            </div>
         </section>
 
         <section id="minhasFormacoes" class="aluno-section aluno-formacoes-section" aria-labelledby="tituloFormacoesAluno">
-            <div class="aluno-section-heading"><div><p class="eyebrow">O teu percurso</p><h2 id="tituloFormacoesAluno">Minhas formações</h2></div><div class="aluno-formacoes-heading-meta"><span id="contadorFormacoesAluno" class="section-count"></span><p>Acompanha aqui as formações comerciais em que te inscreveste.</p></div></div>
+            <div class="aluno-section-heading"><div><h2 id="tituloFormacoesAluno">Minhas formações</h2></div></div>
             <div id="listaMinhasInscricoes" class="lista-aluno"></div>
         </section>
     </main>
@@ -70,6 +60,5 @@
     </div>
 
     <script src="js/aluno.js"></script>
-    <script src="js/academico.js"></script>
 </body>
 </html>

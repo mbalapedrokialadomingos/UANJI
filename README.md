@@ -73,8 +73,12 @@ Esse script cria e liga as tabelas:
 - `disciplinas`
 - `explicadores`
 - `disciplina_explicadores`
+- `solicitacoes_apoio`
+- `pedidos_eliminacao_apoio`
 
 e carrega os dados iniciais de exemplo com cursos, disciplinas, explicadores e a associação entre disciplina e explicador.
+
+A tabela `pedidos_eliminacao_apoio` é usada quando um aluno pede para remover uma solicitação de apoio. O pedido fica pendente até o administrador aceitar ou recusar. A tabela original `solicitacoes_apoio` não é alterada.
 
 Se estiver a usar a mesma máquina com a base já criada, o passo mais simples é o seguinte:
 
@@ -82,11 +86,23 @@ Se estiver a usar a mesma máquina com a base já criada, o passo mais simples �
 psql -U postgres -d projecto2 -f database/sprint2_academico.sql
 ```
 
+#### Atualizar uma base de dados já existente
+
+Se a base `projecto2` já foi criada e o ficheiro `database/sprint2_academico.sql` já foi executado anteriormente, execute a migração nova para criar apenas a estrutura dos pedidos de eliminação:
+
+```bash
+psql -U postgres -d projecto2 -f database/migracao_pedidos_eliminacao_apoio.sql
+```
+
+Esta migração é segura para executar mais do que uma vez. Não cria outro banco, não apaga dados e não altera as tabelas existentes.
+
 No final, confirme que a camada académica está lá:
 
 ```bash
-psql -U postgres -d projecto2 -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('cursos_academicos','disciplinas','explicadores','disciplina_explicadores') ORDER BY table_name;"
+psql -U postgres -d projecto2 -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('cursos_academicos','disciplinas','explicadores','disciplina_explicadores','solicitacoes_apoio','pedidos_eliminacao_apoio') ORDER BY table_name;"
 ```
+
+Devem aparecer também `solicitacoes_apoio` e `pedidos_eliminacao_apoio`.
 
 Se o PostgreSQL da sua máquina tiver outra palavra-passe, altere o campo `password` em `db/database.js` para o valor correcto.
 

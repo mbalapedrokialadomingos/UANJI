@@ -34,7 +34,6 @@
         <main class="painel-main">
             <header class="painel-header">
                 <div>
-                    <p class="eyebrow">Área administrativa</p>
                     <h1>Painel Administrativo</h1>
                 </div>
                 <button id="btnLogout" class="btn btn-ghost" type="button">Sair</button>
@@ -48,7 +47,6 @@
                 <summary class="admin-section-summary"><span>Gestão académica</span><small>cursos, disciplinas, explicadores e associações</small></summary>
                 <div class="section-header">
                     <div>
-                        <p class="eyebrow">Sprint 2</p>
                         <h2>Gestão académica</h2>
                     </div>
                     <span id="mensagemAcademica" class="mensagem"></span>
@@ -109,17 +107,20 @@
             <details id="solicitacoesApoio" class="panel-card admin-collapsible">
                 <summary class="admin-section-summary"><span>Solicitações de apoio</span><small>acompanhar e atualizar pedidos dos alunos</small></summary>
                 <div class="section-header">
-                    <div><p class="eyebrow">Atendimento</p><h2>Solicitações de apoio</h2></div>
+                    <div><h2>Solicitações de apoio</h2></div>
                     <span id="contadorSolicitacoesApoio" class="badge">A carregar</span>
                 </div>
                 <div id="listaSolicitacoesApoio" class="admin-resource-list"></div>
+                <div class="admin-deletion-requests">
+                    <h3>Pedidos de eliminação</h3>
+                    <div id="listaPedidosEliminacaoApoio" class="admin-resource-list"></div>
+                </div>
             </details>
 
             <details id="gestaoFormacoes" class="panel-card admin-collapsible">
                 <summary class="admin-section-summary"><span>Adicionar formação</span><small>criar ou editar formações comerciais</small></summary>
                 <div class="section-header">
                     <div>
-                        <p class="eyebrow">Catálogo</p>
                         <h2 id="tituloFormacao">Adicionar Formação</h2>
                     </div>
                     <button id="btnCancelarEdicao" class="btn btn-ghost btn-small" type="button" hidden>Cancelar edição</button>
@@ -162,7 +163,6 @@
                 <summary class="admin-section-summary"><span>Formações publicadas</span><small>pesquisar e remover formações do catálogo</small></summary>
                 <div class="section-header">
                     <div>
-                        <p class="eyebrow">Gestão do catálogo</p>
                         <h2>Formações publicadas</h2>
                     </div>
                     <input id="pesquisaFormacoes" class="campo-pesquisa" type="search" placeholder="Pesquisar formação..." aria-label="Pesquisar formação">

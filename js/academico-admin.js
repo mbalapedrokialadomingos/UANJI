@@ -263,6 +263,42 @@ async function carregarSolicitacoesApoio() {
     } catch (erro) {
         $("listaSolicitacoesApoio").innerHTML = `<p class="mensagem-erro">${escaparTexto(erro.message)}</p>`;
     }
+
+    carregarPedidosEliminacaoApoio();
+}
+
+async function carregarPedidosEliminacaoApoio() {
+    try {
+        const pedidos = await apiAcademica("/pedidos-eliminacao-apoio");
+        $("listaPedidosEliminacaoApoio").innerHTML = pedidos.length
+            ? pedidos.map((pedido) => `
+                <article class="admin-resource-item admin-request-item">
+                    <div><strong>${escaparTexto(pedido.aluno_nome)} · ${escaparTexto(pedido.disciplina_nome)}</strong><span>Curso: ${escaparTexto(pedido.curso_nome)} · Explicador: ${escaparTexto(pedido.explicador_nome)}</span></div>
+                    <div class="admin-request-actions">
+                        <button class="btn btn-primary btn-small" data-decisao-eliminacao="aceite" data-id="${pedido.id}" type="button">Aceitar</button>
+                        <button class="btn btn-ghost btn-small" data-decisao-eliminacao="recusada" data-id="${pedido.id}" type="button">Recusar</button>
+                    </div>
+                </article>`).join("")
+            : "<p class='empty-state'>Não existem pedidos de eliminação pendentes.</p>";
+
+        $("listaPedidosEliminacaoApoio").querySelectorAll("[data-decisao-eliminacao]").forEach((botao) => botao.addEventListener("click", async () => {
+            botao.disabled = true;
+            try {
+                const dados = await apiAcademica(`/pedidos-eliminacao-apoio/${botao.dataset.id}`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ estado: botao.dataset.decisaoEliminacao })
+                });
+                mostrarMensagemAcademica(dados.mensagem, "mensagem-sucesso");
+                await carregarPedidosEliminacaoApoio();
+                await carregarSolicitacoesApoio();
+            } catch (erro) {
+                botao.disabled = false;
+                mostrarMensagemAcademica(erro.message, "mensagem-erro");
+            }
+        }));
+    } catch (erro) {
+        $("listaPedidosEliminacaoApoio").innerHTML = `<p class="mensagem-erro">${escaparTexto(erro.message)}</p>`;
+    }
 }
 
 $("btnCancelarCurso").addEventListener("click", limparCurso);

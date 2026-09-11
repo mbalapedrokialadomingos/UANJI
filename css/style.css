@@ -327,132 +327,6 @@ section h2 {
     font-weight: 700;
     color: #334155;
 }
-    font-size: 16px;
-}
-
-.form-modal button {
-
-    margin-top: 10px;
-    padding: 12px 16px;
-    border: none;
-    border-radius: 10px;
-    background: #1d4ed8;
-    color: white;
-}
-
-    font-weight: 700;
-    cursor: pointer;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    background: linear-gradient(135deg, #102a43 0%, #184d79 100%);
-    color: white;
-    padding: clamp(80px, 10vw, 120px) 20px;
-}
-
-.home-page .contact-option {
-    display: flex;
-    min-height: 118px;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 14px;
-    min-width: 0;
-    padding: 18px;
-    border: 1px solid var(--home-line);
-    border-radius: 9px;
-    background: #fff;
-}
-
-.home-page .contact-option-label {
-    color: var(--home-blue);
-    font-size: 11px;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-
-.home-page .contact-option a,
-.home-page .contact-option > span:last-child {
-    color: var(--home-ink);
-    font-size: 14px;
-    font-weight: 800;
-    line-height: 1.45;
-    text-decoration: none;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.home-page .contact-option a:hover {
-    color: var(--home-blue);
-}
-
-.home-page .contact-option-links {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 0;
-}
-}
-
-/* =========================
-   AUTENTICAÇÃO NO MODAL
-========================= */
-
-.auth-modal {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-}
-
-.auth-texto {
-    color: #475569;
-    margin-bottom: 8px;
-}
-
-.auth-toggle {
-    display: flex;
-    gap: 10px;
-    background: #f1f5f9;
-    padding: 6px;
-    border-radius: 12px;
-}
-
-.auth-tab {
-    flex: 1;
-    border: none;
-    border-radius: 10px;
-    background: transparent;
-    color: #334155;
-    font-weight: 700;
-    padding: 10px 12px;
-    cursor: pointer;
-}
-
-.auth-tab.active {
-    background: #0f172a;
-    color: white;
-}
-
-.auth-panel {
-    display: none;
-}
-
-.auth-panel.active {
-    display: block;
-}
-
-.auth-form,
-.form-modal {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.auth-form label,
-.form-modal label {
-    font-weight: 700;
-    color: #334155;
-}
 
 .auth-form input,
 .form-modal input {
@@ -766,151 +640,6 @@ footer {
 /* =========================
    DETALHES DA FORMAÇÃO
 ========================= */
-
-.detalhes-container {
-    max-width: 850px;
-    margin: 50px auto 0;
-}
-
-.detalhes-card {
-    background: #0f172a;
-    color: white;
-
-    padding: 40px;
-
-    border-radius: 16px;
-
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, 0.15);
-
-    animation: aparecer 0.4s ease;
-}
-
-.detalhes-card h2 {
-    text-align: left;
-    margin-bottom: 20px;
-    font-size: 32px;
-}
-
-.detalhes-descricao {
-    font-size: 17px;
-    margin-bottom: 30px;
-    color: #cbd5e1;
-}
-
-.detalhes-info {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-
-    margin-bottom: 30px;
-}
-
-.info-item {
-    background: #1e293b;
-
-    padding: 15px 20px;
-
-    border-radius: 8px;
-
-    min-width: 180px;
-}
-
-.info-item span {
-    display: block;
-
-    font-size: 13px;
-
-    color: #94a3b8;
-
-    margin-bottom: 5px;
-}
-
-.info-item strong {
-    font-size: 18px;
-}
-
-.btn-inscricao {
-    padding: 14px 28px;
-
-    border: none;
-    border-radius: 8px;
-
-    background: #38bdf8;
-    color: #0f172a;
-
-    font-weight: bold;
-    font-size: 16px;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-}
-
-.btn-inscricao:hover {
-    transform: translateY(-3px);
-}
-
-/* =========================
-   FORMULÁRIO DE INSCRIÇÃO
-========================= */
-
-.inscricao-container {
-    max-width: 700px;
-    margin: 30px auto;
-}
-
-.inscricao-card {
-    background: white;
-
-    padding: 35px;
-
-    border-radius: 14px;
-
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.08);
-
-    border: 1px solid #e5e7eb;
-
-    animation: aparecer 0.4s ease;
-}
-
-.inscricao-card h2 {
-    text-align: left;
-    margin-bottom: 25px;
-}
-
-.inscricao-card form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.inscricao-card input {
-    padding: 13px;
-
-    border: 1px solid #cbd5e1;
-
-    border-radius: 7px;
-
-    font-size: 16px;
-}
-
-.inscricao-card button {
-    margin-top: 10px;
-
-    padding: 13px;
-
-    border: none;
-    border-radius: 7px;
-
-    background: #1e3a8a;
-    color: white;
-
-    font-weight: bold;
-
-    cursor: pointer;
-}
 
 /* =========================
    ANIMAÇÃO
@@ -3458,6 +3187,166 @@ footer {
     line-height: 1.35;
 }
 
+.aluno-profile-section {
+    margin-top: 34px;
+}
+
+.aluno-profile-card,
+.aluno-support-card {
+    display: grid;
+    gap: 16px;
+    padding: 22px 24px;
+    border: 1px solid #dfe7ef;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 7px 18px rgba(31, 61, 96, 0.04);
+}
+
+.aluno-profile-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aluno-profile-card span,
+.aluno-support-card strong {
+    display: block;
+    color: #8a97a8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.aluno-profile-card strong {
+    display: block;
+    margin-top: 5px;
+    color: #173b72;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+
+.aluno-support-section {
+    padding-top: 34px;
+    border-top: 1px solid #dfe7ef;
+}
+
+.aluno-support-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.aluno-support-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.lista-solicitacoes-aluno {
+    display: grid;
+    gap: 10px;
+    flex: 1;
+}
+
+.solicitacao-aluno-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    border: 1px solid #e1e8f0;
+    border-radius: 10px;
+    background: #f8fbfe;
+}
+
+.solicitacao-aluno-item h3,
+.solicitacao-aluno-item p {
+    margin: 0;
+}
+
+.solicitacao-aluno-item h3 {
+    color: #173b72;
+    font-size: 15px;
+}
+
+.solicitacao-aluno-item p {
+    margin-top: 3px;
+    color: #718096;
+    font-size: 12px;
+}
+
+.solicitacao-status {
+    flex: 0 0 auto;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.solicitacao-status-pendente {
+    background: #fff4d6;
+    color: #9a6700;
+}
+
+.solicitacao-status-aceite {
+    background: #dcf7e7;
+    color: #167044;
+}
+
+.solicitacao-status-recusada {
+    background: #ffe3e3;
+    color: #ae3030;
+}
+
+.solicitacao-aluno-acoes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+.solicitacao-remover {
+    color: #ae3030;
+}
+
+.solicitacao-remover:hover {
+    background: #fff0f0;
+    color: #8f2424;
+}
+
+.solicitacao-remover:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.admin-deletion-requests {
+    margin-top: 24px;
+}
+
+.admin-deletion-requests h3 {
+    margin-bottom: 12px;
+}
+
+.admin-request-actions {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.aluno-support-card p {
+    flex: 1;
+    margin: 0;
+    color: #718096;
+    font-size: 14px;
+}
+
+.aluno-support-card .btn {
+    flex: 0 0 auto;
+}
+
 .aluno-resumo {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3533,114 +3422,6 @@ footer {
     font-size: 14px;
 }
 
-.aluno-search-panel {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(210px, 0.8fr) auto;
-    align-items: end;
-    gap: 14px;
-    padding: 18px;
-    border: 1px solid #d8e5f0;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 8px 22px rgba(31, 61, 96, 0.05);
-}
-
-.aluno-search-field,
-.aluno-filter-field {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    color: #536176;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.aluno-search-field > div {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    height: 46px;
-    padding: 0 13px;
-    border: 1px solid #cbd8e5;
-    border-radius: 9px;
-    background: #f8fbfe;
-}
-
-.aluno-search-field > div > span {
-    color: #1d4ed8;
-    font-size: 23px;
-}
-
-.aluno-search-field input,
-.aluno-filter-field select {
-    width: 100%;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: #172033;
-    font: inherit;
-    font-weight: 500;
-}
-
-.aluno-filter-field select {
-    height: 46px;
-    padding: 0 12px;
-    border: 1px solid #cbd8e5;
-    border-radius: 9px;
-    background: #f8fbfe;
-}
-
-.aluno-search-panel .btn {
-    height: 46px;
-}
-
-.aluno-status {
-    margin: 12px 0 0;
-}
-
-.aluno-subsection-heading {
-    display: flex;
-    align-items: end;
-    justify-content: space-between;
-    gap: 16px;
-    margin: 34px 0 15px;
-}
-
-.aluno-subsection-heading h3 {
-    margin: 0;
-    color: #172033;
-    font-size: 20px;
-}
-
-.aluno-subsection-heading .eyebrow {
-    margin-bottom: 4px;
-}
-
-.aluno-disciplines-heading {
-    margin-top: 46px;
-}
-
-.academia-cursos,
-.academia-resultados {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 14px;
-}
-
-.academia-curso-card,
-.academia-disciplina-card {
-    border-color: #e1e8f0;
-    border-radius: 13px;
-    box-shadow: 0 6px 18px rgba(31, 61, 96, 0.04);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.academia-curso-card:hover,
-.academia-disciplina-card:hover {
-    border-color: #b8d1e8;
-    box-shadow: 0 12px 24px rgba(31, 61, 96, 0.09);
-    transform: translateY(-3px);
-}
-
 .aluno-formacoes-section {
     padding-top: 34px;
     border-top: 1px solid #dfe7ef;
@@ -3665,12 +3446,22 @@ footer {
 }
 
 .formacao-aluno-card {
+    position: relative;
     align-items: center;
     min-height: 126px;
     padding: 20px 22px;
+    overflow: hidden;
     background: #fff !important;
-    box-shadow: 0 7px 18px rgba(31, 61, 96, 0.04);
+    box-shadow: 0 8px 22px rgba(31, 61, 96, 0.06);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.formacao-aluno-card::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #56b8b0;
+    content: "";
 }
 
 .formacao-aluno-card:hover {
@@ -3695,11 +3486,13 @@ footer {
 .formacao-aluno-topo h3 {
     margin: 0;
     color: #173b72;
-    font-size: 18px;
+    font-size: 19px;
+    line-height: 1.3;
 }
 
 .formacao-status {
     display: inline-flex;
+    align-self: flex-start;
     padding: 5px 9px;
     border-radius: 999px;
     font-size: 10px;
@@ -3711,6 +3504,12 @@ footer {
 .formacao-status-pendente {
     background: #fff4d6;
     color: #9a6700;
+}
+
+.formacao-status-pendente,
+.formacao-status-aprovado,
+.formacao-status-reprovado {
+    white-space: nowrap;
 }
 
 .formacao-status-aprovado {
@@ -3747,20 +3546,28 @@ footer {
     font-size: 13px;
 }
 
+.formacao-meta-item {
+    min-width: 110px;
+}
+
 .formacao-meta-pagamento strong {
     color: #1d4ed8;
 }
 
-.formacao-aluno-arrow {
-    margin-left: 18px;
-    color: #8aa6c2;
-    font-size: 25px;
-    transition: transform 0.2s ease, color 0.2s ease;
+.formacao-aluno-acoes {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 0 0 auto;
 }
 
-.formacao-aluno-card:hover .formacao-aluno-arrow {
-    color: #1d4ed8;
-    transform: translateX(4px);
+.formacao-remover {
+    color: #ae3030;
+}
+
+.formacao-remover:hover {
+    background: #fff0f0;
+    color: #8f2424;
 }
 
 .aluno-page .btn:focus-visible,
@@ -3816,8 +3623,11 @@ footer {
         margin-bottom: 34px;
     }
 
-    .aluno-section-heading,
-    .aluno-subsection-heading {
+    .aluno-profile-card {
+        grid-template-columns: 1fr;
+    }
+
+    .aluno-section-heading {
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
@@ -3833,15 +3643,28 @@ footer {
         align-items: flex-start;
     }
 
-    .formacao-aluno-arrow {
-        display: none;
+    .formacao-aluno-acoes {
+        width: 100%;
+        align-items: flex-start;
+        justify-content: space-between;
     }
 
-    .aluno-search-panel {
-        grid-template-columns: 1fr;
+    .aluno-support-card {
+        align-items: stretch;
+        flex-direction: column;
     }
 
-    .aluno-search-panel .btn {
+    .solicitacao-aluno-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .solicitacao-aluno-acoes {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .aluno-support-card .btn {
         width: 100%;
     }
 
@@ -3974,6 +3797,16 @@ footer {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
+}
+
+.home-page .academia-curso-card {
+    display: flex;
+    min-height: 245px;
+    flex-direction: column;
+}
+
+.home-page .academia-curso-meta {
+    margin-top: auto;
 }
 
 .home-page .card {

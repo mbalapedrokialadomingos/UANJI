@@ -23,24 +23,19 @@ const secaoDisciplinasPublica = !paginaAluno ? document.getElementById("subsecao
 const filtrosDisciplinaPublicos = !paginaAluno ? document.querySelector(".academia-filtros") : null;
 
 if (paginaAluno) {
-    if (secaoAcademiaAluno) {
-        secaoAcademiaAluno.hidden = true;
-    }
-    if (secaoCursosAluno) {
-        secaoCursosAluno.hidden = true;
-    }
-    if (listaCursosAluno) {
-        listaCursosAluno.hidden = true;
-        listaCursosAluno.replaceChildren();
-    }
-    secaoDisciplinasAluno.hidden = true;
-    listaDisciplinasAluno.hidden = true;
-    painelPesquisaAluno.hidden = true;
+    if (secaoAcademiaAluno) secaoAcademiaAluno.hidden = false;
+    if (secaoCursosAluno) secaoCursosAluno.hidden = false;
+    if (listaCursosAluno) listaCursosAluno.hidden = false;
+    if (secaoDisciplinasAluno) secaoDisciplinasAluno.hidden = false;
+    if (listaDisciplinasAluno) listaDisciplinasAluno.hidden = false;
+    if (painelPesquisaAluno) painelPesquisaAluno.hidden = false;
 }
 
 if (secaoDisciplinasPublica) {
     secaoDisciplinasPublica.hidden = true;
+    secaoDisciplinasPublica.style.display = "none";
     filtrosDisciplinaPublicos.hidden = true;
+    filtrosDisciplinaPublicos.style.display = "none";
 }
 
 let cursosAcademicos = [];
@@ -48,6 +43,10 @@ let disciplinasAcademicas = [];
 let cursoSelecionado = "";
 
 function atualizarVisibilidadeCursos() {
+    if (!listaCursosAcademicos) {
+        return;
+    }
+
     listaCursosAcademicos.querySelectorAll(".academia-curso-card").forEach((cartao) => {
         cartao.hidden = Boolean(cursoSelecionado) && cartao.dataset.cursoId !== cursoSelecionado;
     });
@@ -79,7 +78,9 @@ async function carregarCursosAcademicos() {
 
         cursosAcademicos = dados;
         filtroCurso.innerHTML = '<option value="">Todos os cursos académicos</option>';
-        listaCursosAcademicos.innerHTML = "";
+        if (listaCursosAcademicos) {
+            listaCursosAcademicos.innerHTML = "";
+        }
 
         cursosAcademicos.forEach((curso) => {
             const option = document.createElement("option");
@@ -109,28 +110,24 @@ async function carregarCursosAcademicos() {
                 detalhes.appendChild(botao);
             }
             cartao.appendChild(detalhes);
-            listaCursosAcademicos.appendChild(cartao);
+            if (listaCursosAcademicos) {
+                listaCursosAcademicos.appendChild(cartao);
+            }
         });
 
-        contadorCursos.textContent = `${cursosAcademicos.length} curso${cursosAcademicos.length === 1 ? "" : "s"}`;
-        if (totalCursosAcademicos) {
-            totalCursosAcademicos.textContent = paginaAluno ? "0" : cursosAcademicos.length;
+        if (contadorCursos) {
+            contadorCursos.textContent = `${cursosAcademicos.length} curso${cursosAcademicos.length === 1 ? "" : "s"}`;
         }
-
-        if (paginaAluno) {
-            if (secaoCursosAluno) secaoCursosAluno.hidden = true;
-            if (listaCursosAluno) listaCursosAluno.hidden = true;
-            if (totalDisciplinasAcademicas) {
-                totalDisciplinasAcademicas.textContent = "0";
-            }
-            mostrarEstadoAcademia("");
-            return;
+        if (totalCursosAcademicos) {
+            totalCursosAcademicos.textContent = cursosAcademicos.length;
         }
 
         mostrarEstadoAcademia("");
     } catch (erro) {
         console.error("Erro ao carregar cursos académicos:", erro);
-        listaCursosAcademicos.innerHTML = "";
+        if (listaCursosAcademicos) {
+            listaCursosAcademicos.innerHTML = "";
+        }
         mostrarEstadoAcademia(erro.message || "Não foi possível ligar ao serviço académico.", "error");
     }
 }
@@ -214,7 +211,9 @@ function selecionarCurso(id) {
     atualizarVisibilidadeCursos();
     if (secaoDisciplinasPublica) {
         secaoDisciplinasPublica.hidden = false;
+        secaoDisciplinasPublica.style.display = "";
         filtrosDisciplinaPublicos.hidden = false;
+        filtrosDisciplinaPublicos.style.display = "";
         secaoDisciplinasPublica.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     carregarDisciplinas();
@@ -304,10 +303,12 @@ function mostrarFormularioApoio(disciplina, explicador) {
     `;
 
     modalAcademia.classList.add("ativo");
-    document.getElementById("formSolicitacaoApoio").addEventListener("submit", async (evento) => {
+    const formularioSolicitacao = document.getElementById("formSolicitacaoApoio");
+    formularioSolicitacao.addEventListener("submit", async (evento) => {
         evento.preventDefault();
+        const formulario = evento.currentTarget;
         const status = document.getElementById("mensagemApoioStatus");
-        const botao = evento.currentTarget.querySelector("button");
+        const botao = formulario.querySelector("button");
         botao.disabled = true;
         status.textContent = "A enviar solicitação...";
         status.className = "status-message loading";
@@ -330,7 +331,7 @@ function mostrarFormularioApoio(disciplina, explicador) {
 
             status.textContent = dados.mensagem;
             status.className = "status-message success";
-            evento.currentTarget.reset();
+            formulario.reset();
         } catch (erro) {
             status.textContent = erro.message || "Não foi possível enviar a solicitação.";
             status.className = "status-message error";

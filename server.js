@@ -638,6 +638,56 @@ if (req.method === "GET" && req.url === "/minhas-inscricoes") {
     return;
 }
 
+// Permite ao aluno remover apenas uma inscrição própria reprovada.
+if (req.method === "DELETE" && req.url.startsWith("/minhas-inscricoes/")) {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && typeof sessao === "object" && sessao.email
+        ? sessao.email
+        : null;
+    const id = Number(req.url.split("/").pop());
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ autenticado: false, mensagem: "Precisa de iniciar sessão." }));
+        return;
+    }
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Inscrição inválida." }));
+        return;
+    }
+
+    db.query(
+        `DELETE FROM inscricoes i
+         USING utilizadores u
+         WHERE i.id = $1
+           AND i.utilizador_id = u.id
+           AND u.email = $2
+           AND i.estado = 'REPROVADO'
+         RETURNING i.id`,
+        [id, emailUtilizador]
+    )
+        .then((resultado) => {
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Inscrição não encontrada ou não está reprovada." }));
+                return;
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Formação removida do perfil." }));
+        })
+        .catch((erro) => {
+            console.error("Erro ao remover formação reprovada:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao remover a formação." }));
+        });
+
+    return;
+}
+
 // Permite o acesso à página do aluno apenas com sessão válida.
 if (req.method === "GET" && req.url === "/aluno.html") {
 
@@ -1852,6 +1902,193 @@ if (req.method === "POST" && req.url === "/solicitacoes-apoio") {
         }
     });
 
+    return;
+}
+
+// Permite ao administrador acompanhar as solicitações feitas pelos alunos.
+if (req.method === "GET" && req.url === "/minhas-solicitacoes-apoio") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && typeof sessao === "object" && sessao.email
+        ? sessao.email
+        : null;
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ autenticado: false, mensagem: "Precisa de iniciar sessão." }));
+        return;
+    }
+
+    db.query(
+        `SELECT s.id, s.mensagem, s.estado, s.created_at,
+                u.nome AS aluno_nome, u.email AS aluno_email,
+                d.nome AS disciplina_nome, c.nome AS curso_nome,
+            e.nome AS explicador_nome,
+            pea.id AS pedido_eliminacao_id,
+            pea.estado AS estado_eliminacao
+         FROM solicitacoes_apoio s
+         INNER JOIN utilizadores u ON u.id = s.utilizador_id
+         INNER JOIN disciplinas d ON d.id = s.disciplina_id
+         INNER JOIN cursos_academicos c ON c.id = d.curso_academico_id
+         INNER JOIN explicadores e ON e.id = s.explicador_id
+         LEFT JOIN pedidos_eliminacao_apoio pea ON pea.solicitacao_id = s.id
+         WHERE u.email = $1
+         ORDER BY s.id DESC`,
+        [emailUtilizador]
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ autenticado: true, solicitacoes: resultado.rows }));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar solicitações do aluno:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ autenticado: false, mensagem: "Erro ao carregar as suas solicitações." }));
+        });
+
+    return;
+}
+
+// Regista o pedido do aluno para eliminar uma das suas próprias solicitações.
+if (req.method === "POST" && req.url.startsWith("/minhas-solicitacoes-apoio/") && req.url.endsWith("/eliminacao")) {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && typeof sessao === "object" && sessao.email
+        ? sessao.email
+        : null;
+    const id = Number(req.url.split("/")[2]);
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ autenticado: false, mensagem: "Precisa de iniciar sessão." }));
+        return;
+    }
+
+    if (!Number.isInteger(id) || id <= 0) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Solicitação inválida." }));
+        return;
+    }
+
+    db.query(
+        `INSERT INTO pedidos_eliminacao_apoio (solicitacao_id, utilizador_id)
+         SELECT s.id, s.utilizador_id
+         FROM solicitacoes_apoio s
+         INNER JOIN utilizadores u ON u.id = s.utilizador_id
+         WHERE s.id = $1 AND u.email = $2
+         AND NOT EXISTS (
+             SELECT 1 FROM pedidos_eliminacao_apoio pea
+             WHERE pea.solicitacao_id = s.id AND pea.estado = 'pendente'
+         )
+         RETURNING id`,
+        [id, emailUtilizador]
+    )
+        .then((resultado) => {
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Solicitação não encontrada ou já tem um pedido pendente." }));
+                return;
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Pedido de eliminação enviado para confirmação do administrador." }));
+        })
+        .catch((erro) => {
+            console.error("Erro ao eliminar solicitação do aluno:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao eliminar a solicitação." }));
+        });
+
+    return;
+}
+
+// Lista os pedidos de eliminação para decisão administrativa.
+if (req.method === "GET" && req.url === "/pedidos-eliminacao-apoio") {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    db.query(
+        `SELECT pea.id, pea.solicitacao_id, pea.estado, pea.created_at,
+                u.nome AS aluno_nome, u.email AS aluno_email,
+                d.nome AS disciplina_nome, c.nome AS curso_nome,
+                e.nome AS explicador_nome
+         FROM pedidos_eliminacao_apoio pea
+         INNER JOIN utilizadores u ON u.id = pea.utilizador_id
+         INNER JOIN solicitacoes_apoio s ON s.id = pea.solicitacao_id
+         INNER JOIN disciplinas d ON d.id = s.disciplina_id
+         INNER JOIN cursos_academicos c ON c.id = d.curso_academico_id
+         INNER JOIN explicadores e ON e.id = s.explicador_id
+         WHERE pea.estado = 'pendente'
+         ORDER BY pea.id DESC`
+    )
+        .then((resultado) => {
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify(resultado.rows));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar pedidos de eliminação:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao buscar pedidos de eliminação." }));
+        });
+
+    return;
+}
+
+// Permite ao administrador aceitar ou recusar um pedido de eliminação.
+if (req.method === "PATCH" && req.url.startsWith("/pedidos-eliminacao-apoio/")) {
+    if (!sessaoEAdmin(req)) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Acesso reservado ao administrador." }));
+        return;
+    }
+
+    const id = Number(req.url.split("/").pop());
+    let dados = "";
+    req.on("data", (parte) => { dados += parte; });
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const estado = typeof payload.estado === "string" ? payload.estado.trim().toLowerCase() : "";
+            if (!Number.isInteger(id) || id <= 0 || !["aceite", "recusada"].includes(estado)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Pedido ou decisão inválida." }));
+                return;
+            }
+
+            await db.query("BEGIN");
+            const pedido = await db.query(
+                `SELECT solicitacao_id FROM pedidos_eliminacao_apoio
+                 WHERE id = $1 AND estado = 'pendente' FOR UPDATE`,
+                [id]
+            );
+            if (pedido.rows.length === 0) {
+                await db.query("ROLLBACK");
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Pedido de eliminação não encontrado." }));
+                return;
+            }
+
+            if (estado === "aceite") {
+                await db.query("DELETE FROM solicitacoes_apoio WHERE id = $1", [pedido.rows[0].solicitacao_id]);
+            }
+            await db.query(
+                "UPDATE pedidos_eliminacao_apoio SET estado = $1, decided_at = CURRENT_TIMESTAMP WHERE id = $2",
+                [estado, id]
+            );
+            await db.query("COMMIT");
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: estado === "aceite" ? "Solicitação eliminada." : "Pedido de eliminação recusado." }));
+        } catch (erro) {
+            await db.query("ROLLBACK").catch(() => {});
+            console.error("Erro ao decidir pedido de eliminação:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao processar o pedido de eliminação." }));
+        }
+    });
     return;
 }
 

@@ -12,6 +12,17 @@ const btnLoginPrincipal = document.getElementById("btnLoginPrincipal");
 
 let utilizadorAtual = null;
 
+function atualizarBotaoLogin(utilizador) {
+    if (!btnLoginPrincipal || !utilizador?.nome) {
+        return;
+    }
+
+    const inicial = utilizador.nome.trim().charAt(0).toUpperCase();
+    btnLoginPrincipal.textContent = inicial;
+    btnLoginPrincipal.setAttribute("aria-label", `Abrir área de ${utilizador.nome}`);
+    btnLoginPrincipal.title = utilizador.nome;
+}
+
 // Verifica se existe uma sessão ativa do utilizador no servidor.
 async function verificarAutenticacao() {
 
@@ -31,6 +42,7 @@ async function verificarAutenticacao() {
         }
 
         utilizadorAtual = dados.utilizador;
+        atualizarBotaoLogin(utilizadorAtual);
         return dados.utilizador;
 
     } catch (erro) {
@@ -205,6 +217,7 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
 
             if (resposta.ok) {
                 utilizadorAtual = dados.utilizador;
+                atualizarBotaoLogin(utilizadorAtual);
 
                 if (formacao) {
                     mostrarFormularioInscricao(formacao);
@@ -255,6 +268,7 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
 
                 if (loginResposta.ok) {
                     utilizadorAtual = loginDados.utilizador;
+                    atualizarBotaoLogin(utilizadorAtual);
 
                     if (formacao) {
                         mostrarFormularioInscricao(formacao);
