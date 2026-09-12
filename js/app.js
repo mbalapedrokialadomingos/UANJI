@@ -12,6 +12,18 @@ const btnLoginPrincipal = document.getElementById("btnLoginPrincipal");
 
 let utilizadorAtual = null;
 
+function passwordForte(password) {
+    return password.length >= 8
+        && /[a-z]/.test(password)
+        && /[A-Z]/.test(password)
+        && /\d/.test(password)
+        && /[^A-Za-z\d]/.test(password);
+}
+
+function encaminharUtilizador(utilizador) {
+    window.location.href = utilizador?.eExplicador ? "/explicador.html" : "/aluno.html";
+}
+
 function atualizarBotaoLogin(utilizador) {
     if (!btnLoginPrincipal || !utilizador?.nome) {
         return;
@@ -168,7 +180,8 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
                     <input type="email" id="registarEmail" placeholder="Digite o seu email" required>
 
                     <label for="registarPassword">Password</label>
-                    <input type="password" id="registarPassword" placeholder="Crie uma password" required>
+                    <input type="password" id="registarPassword" placeholder="Crie uma password forte" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}" title="Use pelo menos 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo." autocomplete="new-password" required>
+                    <small class="form-help">Mínimo de 8 caracteres, com maiúscula, minúscula, número e símbolo.</small>
 
                     <button type="submit">Criar conta</button>
                     <div id="mensagemAuthRegistar" class="mensagem-modal"></div>
@@ -219,13 +232,18 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
                 utilizadorAtual = dados.utilizador;
                 atualizarBotaoLogin(utilizadorAtual);
 
+                if (dados.redirecionarParaAlteracaoPassword) {
+                    window.location.href = "/alterar-password.html";
+                    return;
+                }
+
                 if (formacao) {
                     mostrarFormularioInscricao(formacao);
                 } else if (aposAutenticacao) {
                     fecharModalAtual();
                     aposAutenticacao();
                 } else {
-                    window.location.href = "/aluno.html";
+                    encaminharUtilizador(dados.utilizador);
                 }
             }
 
@@ -242,6 +260,11 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
         const email = document.getElementById("registarEmail").value.trim();
         const password = document.getElementById("registarPassword").value;
         const mensagem = document.getElementById("mensagemAuthRegistar");
+
+        if (!passwordForte(password)) {
+            mensagem.textContent = "A password deve ter pelo menos 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo.";
+            return;
+        }
 
         try {
             const resposta = await fetch("/registar", {
@@ -270,13 +293,18 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
                     utilizadorAtual = loginDados.utilizador;
                     atualizarBotaoLogin(utilizadorAtual);
 
+                    if (loginDados.redirecionarParaAlteracaoPassword) {
+                        window.location.href = "/alterar-password.html";
+                        return;
+                    }
+
                     if (formacao) {
                         mostrarFormularioInscricao(formacao);
                     } else if (aposAutenticacao) {
                         fecharModalAtual();
                         aposAutenticacao();
                     } else {
-                        window.location.href = "/aluno.html";
+                        encaminharUtilizador(loginDados.utilizador);
                     }
                 }
             }
@@ -293,7 +321,7 @@ btnLoginPrincipal.addEventListener("click", async () => {
     const perfil = await verificarAutenticacao();
 
     if (perfil) {
-        window.location.href = "/aluno.html";
+        encaminharUtilizador(perfil);
         return;
     }
 

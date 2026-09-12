@@ -31,13 +31,6 @@ if (paginaAluno) {
     if (painelPesquisaAluno) painelPesquisaAluno.hidden = false;
 }
 
-if (secaoDisciplinasPublica) {
-    secaoDisciplinasPublica.hidden = true;
-    secaoDisciplinasPublica.style.display = "none";
-    filtrosDisciplinaPublicos.hidden = true;
-    filtrosDisciplinaPublicos.style.display = "none";
-}
-
 let cursosAcademicos = [];
 let disciplinasAcademicas = [];
 let cursoSelecionado = "";

@@ -209,9 +209,20 @@ $("formDisciplinaAcademica").addEventListener("submit", async (evento) => {
 $("formExplicadorAcademico").addEventListener("submit", async (evento) => {
     evento.preventDefault();
     const id = $("explicadorAcademicoId").value;
+    const passwordInicial = $("passwordInicialExplicador").value;
+    const passwordForte = passwordInicial.length === 0 || (passwordInicial.length >= 8
+        && /[a-z]/.test(passwordInicial)
+        && /[A-Z]/.test(passwordInicial)
+        && /\d/.test(passwordInicial)
+        && /[^A-Za-z\d]/.test(passwordInicial));
+    if (!passwordForte) {
+        mostrarMensagemAcademica("A password deve ter pelo menos 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo.", "mensagem-erro");
+        return;
+    }
     const body = {
         nome: $("nomeExplicadorAcademico").value.trim(),
         email: $("emailExplicadorAcademico").value.trim(),
+        passwordInicial,
         especialidade: $("especialidadeExplicadorAcademico").value.trim(),
         bio: $("bioExplicadorAcademico").value.trim()
     };

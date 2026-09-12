@@ -11,6 +11,17 @@ const bcrypt = require("bcrypt");
 // Guarda todas as sessões ativas do navegador em memória.
 const sessoes = new Map();
 
+function passwordForte(password) {
+    return typeof password === "string"
+        && password.length >= 8
+        && /[a-z]/.test(password)
+        && /[A-Z]/.test(password)
+        && /\d/.test(password)
+        && /[^A-Za-z\d]/.test(password);
+}
+
+const mensagemPasswordFraca = "A password deve ter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um símbolo.";
+
 // Lê o cookie de sessão enviado pelo navegador e devolve o identificador.
 function obterSessao(req) {
 
@@ -387,7 +398,17 @@ if (req.method === "POST" && req.url === "/login") {
             }
 
             const sessionId = Math.random().toString(36).substring(2);
-            sessoes.set(sessionId, { tipo: "utilizador", email: utilizador.email });
+            const explicador = await db.query(
+                "SELECT id FROM explicadores WHERE estado = 'ativo' AND (utilizador_id = $1 OR lower(email) = lower($2))",
+                [utilizador.id, utilizador.email]
+            );
+            const eExplicador = explicador.rows.length > 0;
+            sessoes.set(sessionId, {
+                tipo: "utilizador",
+                email: utilizador.email,
+                eExplicador,
+                exigirAlteracaoPassword: Boolean(utilizador.exigir_alteracao_password)
+            });
 
             res.writeHead(200, {
                 "Content-Type": "application/json",
@@ -400,8 +421,11 @@ if (req.method === "POST" && req.url === "/login") {
                 utilizador: {
                     id: utilizador.id,
                     nome: utilizador.nome,
-                    email: utilizador.email
-                }
+                    email: utilizador.email,
+                    eExplicador,
+                    exigirAlteracaoPassword: Boolean(utilizador.exigir_alteracao_password)
+                },
+                redirecionarParaAlteracaoPassword: Boolean(utilizador.exigir_alteracao_password)
             }));
 
         } catch (erro) {
@@ -519,7 +543,13 @@ if (req.method === "GET" && req.url === "/perfil") {
     }
 
     db.query(
-        "SELECT id, nome, email FROM utilizadores WHERE email = $1",
+        `SELECT id, nome, email, sexo, curso, instituicao, ano_faculdade, data_nascimento,
+                                EXISTS (
+                                        SELECT 1 FROM explicadores e
+                                        WHERE e.estado = 'ativo'
+                                            AND (e.utilizador_id = utilizadores.id OR lower(e.email) = lower(utilizadores.email))
+                ) AS e_explicador
+         FROM utilizadores WHERE email = $1`,
         [emailUtilizador]
     )
         .then((resultado) => {
@@ -546,7 +576,13 @@ if (req.method === "GET" && req.url === "/perfil") {
                 utilizador: {
                     id: utilizador.id,
                     nome: utilizador.nome,
-                    email: utilizador.email
+                    email: utilizador.email,
+                    sexo: utilizador.sexo,
+                    curso: utilizador.curso,
+                    instituicao: utilizador.instituicao,
+                    anoFaculdade: utilizador.ano_faculdade,
+                    dataNascimento: utilizador.data_nascimento,
+                    eExplicador: utilizador.e_explicador
                 }
             }));
         })
@@ -563,6 +599,74 @@ if (req.method === "GET" && req.url === "/perfil") {
             }));
         });
 
+    return;
+}
+
+// Actualiza as informações opcionais do perfil do utilizador autenticado.
+if (req.method === "PUT" && req.url === "/perfil") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && typeof sessao === "object" ? sessao.email : null;
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ autenticado: false, mensagem: "Precisa de iniciar sessão." }));
+        return;
+    }
+
+    let dados = "";
+    req.on("data", (parte) => { dados += parte; });
+    req.on("end", async () => {
+        try {
+            const perfil = JSON.parse(dados || "{}");
+            const sexo = typeof perfil.sexo === "string" ? perfil.sexo.trim() : "";
+            const curso = typeof perfil.curso === "string" ? perfil.curso.trim() : "";
+            const instituicao = typeof perfil.instituicao === "string" ? perfil.instituicao.trim() : "";
+            const anoFaculdade = perfil.anoFaculdade === "" || perfil.anoFaculdade == null
+                ? null
+                : Number(perfil.anoFaculdade);
+            const dataNascimento = typeof perfil.dataNascimento === "string" ? perfil.dataNascimento.trim() : "";
+
+            if (sexo && sexo.length > 30 || curso.length > 150 || instituicao.length > 150) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Verifique o tamanho dos campos do perfil." }));
+                return;
+            }
+
+            if (anoFaculdade !== null && (!Number.isInteger(anoFaculdade) || anoFaculdade < 1 || anoFaculdade > 10)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "O ano da faculdade deve estar entre 1 e 10." }));
+                return;
+            }
+
+            if (dataNascimento && !/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Indique uma data de nascimento válida." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `UPDATE utilizadores
+                 SET sexo = $1, curso = $2, instituicao = $3, ano_faculdade = $4, data_nascimento = $5
+                 WHERE email = $6
+                 RETURNING id, nome, email, sexo, curso, instituicao, ano_faculdade, data_nascimento`,
+                [sexo || null, curso || null, instituicao || null, anoFaculdade, dataNascimento || null, emailUtilizador]
+            );
+
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Utilizador não encontrado." }));
+                return;
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Perfil actualizado com sucesso.", utilizador: resultado.rows[0] }));
+        } catch (erro) {
+            console.error("Erro ao actualizar perfil:", erro.message);
+            res.writeHead(400, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Não foi possível actualizar o perfil." }));
+        }
+    });
     return;
 }
 
@@ -703,22 +807,160 @@ if (req.method === "GET" && req.url === "/aluno.html") {
         return;
     }
 
-    const caminhoAluno = path.join(__dirname, "aluno.html");
+    if (sessao.exigirAlteracaoPassword) {
+        res.writeHead(302, { "Location": "/alterar-password.html" });
+        res.end();
+        return;
+    }
 
-    fs.readFile(caminhoAluno, (err, data) => {
-        if (err) {
-            res.writeHead(404);
-            res.end("Página do aluno não encontrada.");
+    db.query(
+        `SELECT 1 FROM explicadores e
+         INNER JOIN utilizadores u ON u.email = $1
+         WHERE e.estado = 'ativo'
+           AND (e.utilizador_id = u.id OR lower(e.email) = lower(u.email))
+         LIMIT 1`,
+        [sessao.email]
+    ).then((resultado) => {
+        if (sessao.eExplicador || resultado.rows.length > 0) {
+            res.writeHead(302, { "Location": "/explicador.html" });
+            res.end();
             return;
         }
 
-        res.writeHead(200, {
-            "Content-Type": "text/html"
-        });
+        fs.readFile(path.join(__dirname, "aluno.html"), (err, data) => {
+            if (err) {
+                res.writeHead(404);
+                res.end("Página do aluno não encontrada.");
+                return;
+            }
 
-        res.end(data);
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.end(data);
+        });
+    }).catch((erro) => {
+        console.error("Erro ao validar o tipo de utilizador:", erro.message);
+        res.writeHead(500, { "Content-Type": "text/plain" });
+        res.end("Erro ao validar o acesso.");
     });
 
+    return;
+}
+
+// Permite o acesso à página do explicador apenas quando o utilizador está associado a um explicador.
+if (req.method === "GET" && req.url === "/explicador.html") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+
+    if (!sessionId || !sessao || sessao.tipo !== "utilizador") {
+        res.writeHead(302, { "Location": "/" });
+        res.end();
+        return;
+    }
+
+    if (sessao.exigirAlteracaoPassword) {
+        res.writeHead(302, { "Location": "/alterar-password.html" });
+        res.end();
+        return;
+    }
+
+        db.query(
+                `SELECT e.id FROM explicadores e
+                 INNER JOIN utilizadores u ON u.email = $1
+                 WHERE e.estado = 'ativo'
+                     AND (e.utilizador_id = u.id OR lower(e.email) = lower(u.email))
+                 LIMIT 1`,
+                [sessao.email]
+        )
+        .then((resultado) => {
+            if (resultado.rows.length === 0) {
+                res.writeHead(302, { "Location": "/aluno.html" });
+                res.end();
+                return;
+            }
+
+            fs.readFile(path.join(__dirname, "explicador.html"), (erro, data) => {
+                if (erro) {
+                    res.writeHead(404);
+                    res.end("Página do explicador não encontrada.");
+                    return;
+                }
+                res.writeHead(200, { "Content-Type": "text/html" });
+                res.end(data);
+            });
+        })
+        .catch((erro) => {
+            console.error("Erro ao validar explicador:", erro.message);
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("Erro ao validar o acesso do explicador.");
+        });
+
+    return;
+}
+
+if (req.method === "GET" && req.url === "/alterar-password.html") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    if (!sessionId || !sessao || sessao.tipo !== "utilizador" || !sessao.exigirAlteracaoPassword) {
+        res.writeHead(302, { "Location": "/" });
+        res.end();
+        return;
+    }
+
+    fs.readFile(path.join(__dirname, "alterar-password.html"), (erro, data) => {
+        if (erro) {
+            res.writeHead(404);
+            res.end("Página de alteração de password não encontrada.");
+            return;
+        }
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(data);
+    });
+    return;
+}
+
+if (req.method === "POST" && req.url === "/alterar-password-primeiro-acesso") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    if (!sessionId || !sessao || sessao.tipo !== "utilizador" || !sessao.exigirAlteracaoPassword) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ mensagem: "Não é necessário alterar a password neste momento." }));
+        return;
+    }
+
+    let dados = "";
+    req.on("data", (parte) => { dados += parte; });
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const password = typeof payload.password === "string" ? payload.password : "";
+            const confirmacao = typeof payload.confirmacao === "string" ? payload.confirmacao : "";
+            if (!passwordForte(password) || password !== confirmacao) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: password !== confirmacao ? "As passwords não coincidem." : mensagemPasswordFraca }));
+                return;
+            }
+
+            const hash = await bcrypt.hash(password, 10);
+            const resultado = await db.query(
+                `UPDATE utilizadores SET password_hash = $1, exigir_alteracao_password = false
+                 WHERE email = $2 RETURNING id`,
+                [hash, sessao.email]
+            );
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Utilizador não encontrado." }));
+                return;
+            }
+
+            sessao.exigirAlteracaoPassword = false;
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Password alterada com sucesso." }));
+        } catch (erro) {
+            console.error("Erro ao alterar password no primeiro acesso:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao alterar a password." }));
+        }
+    });
     return;
 }
 
@@ -759,14 +1001,14 @@ if (req.method === "POST" && req.url === "/registar") {
                 return;
             }
 
-            if (password.length < 6) {
+            if (!passwordForte(password)) {
                 res.writeHead(400, {
                     "Content-Type": "application/json"
                 });
 
                 res.end(JSON.stringify({
                     sucesso: false,
-                    mensagem: "A password deve ter pelo menos 6 caracteres."
+                    mensagem: mensagemPasswordFraca
                 }));
 
                 return;
@@ -1607,11 +1849,36 @@ if (req.method === "POST" && req.url === "/explicadores") {
             const especialidade = typeof explicador.especialidade === "string" ? explicador.especialidade.trim() : "";
             const bio = typeof explicador.bio === "string" ? explicador.bio.trim() : "";
             const utilizador_id = Number(explicador.utilizador_id || 0);
+            const passwordInicial = typeof explicador.passwordInicial === "string" ? explicador.passwordInicial : "";
 
             if (!nome || !email) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ mensagem: "Nome e email são obrigatórios." }));
                 return;
+            }
+
+            if (utilizador_id <= 0 && !passwordForte(passwordInicial)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: mensagemPasswordFraca }));
+                return;
+            }
+
+            let utilizadorIdFinal = utilizador_id || null;
+            if (!utilizadorIdFinal) {
+                const existente = await db.query("SELECT id FROM utilizadores WHERE email = $1", [email]);
+                if (existente.rows.length > 0) {
+                    res.writeHead(409, { "Content-Type": "application/json" });
+                    res.end(JSON.stringify({ mensagem: "Já existe uma conta com este email. Use outro email ou associe o explicador a um utilizador existente." }));
+                    return;
+                } else {
+                    const passwordHash = await bcrypt.hash(passwordInicial, 10);
+                    const novoUtilizador = await db.query(
+                        `INSERT INTO utilizadores (nome, email, password_hash, exigir_alteracao_password)
+                         VALUES ($1, $2, $3, true) RETURNING id`,
+                        [nome, email, passwordHash]
+                    );
+                    utilizadorIdFinal = novoUtilizador.rows[0].id;
+                }
             }
 
             if (utilizador_id > 0) {
@@ -1627,7 +1894,7 @@ if (req.method === "POST" && req.url === "/explicadores") {
                 `INSERT INTO explicadores (nome, email, especialidade, bio, utilizador_id, estado)
                  VALUES ($1, $2, $3, $4, $5, 'ativo')
                  RETURNING id, nome, email, especialidade, bio, utilizador_id, estado`,
-                [nome, email, especialidade || null, bio || null, utilizador_id || null]
+                [nome, email, especialidade || null, bio || null, utilizadorIdFinal]
             );
 
             res.writeHead(201, { "Content-Type": "application/json" });
@@ -1695,10 +1962,24 @@ if ((req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/ex
             const email = typeof payload.email === "string" ? payload.email.trim().toLowerCase() : "";
             const especialidade = typeof payload.especialidade === "string" ? payload.especialidade.trim() : "";
             const bio = typeof payload.bio === "string" ? payload.bio.trim() : "";
+            const passwordInicial = typeof payload.passwordInicial === "string" ? payload.passwordInicial : "";
 
             if (!nome || !email) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 res.end(JSON.stringify({ mensagem: "Nome e email são obrigatórios." }));
+                return;
+            }
+
+            const explicadorAtual = await db.query("SELECT utilizador_id FROM explicadores WHERE id = $1", [id]);
+            if (explicadorAtual.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Explicador não encontrado." }));
+                return;
+            }
+
+            if (passwordInicial && !passwordForte(passwordInicial)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: mensagemPasswordFraca }));
                 return;
             }
 
@@ -1709,6 +1990,14 @@ if ((req.method === "PUT" || req.method === "DELETE") && req.url.startsWith("/ex
                  RETURNING id, nome, email, especialidade, bio, utilizador_id, estado`,
                 [nome, email, especialidade || null, bio || null, id]
             );
+
+            if (passwordInicial && explicadorAtual.rows[0].utilizador_id) {
+                const passwordHash = await bcrypt.hash(passwordInicial, 10);
+                await db.query(
+                    "UPDATE utilizadores SET password_hash = $1, exigir_alteracao_password = true WHERE id = $2",
+                    [passwordHash, explicadorAtual.rows[0].utilizador_id]
+                );
+            }
 
             if (resultado.rows.length === 0) {
                 res.writeHead(404, { "Content-Type": "application/json" });
@@ -1826,6 +2115,106 @@ if (req.method === "POST" && req.url.startsWith("/disciplinas/") && req.url.incl
 
 // Regista um pedido de apoio feito por um aluno autenticado.
 // A disciplina e o explicador devem estar associados no backend antes do pedido.
+if (req.method === "GET" && req.url === "/minhas-solicitacoes-explicador") {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && sessao.tipo === "utilizador" ? sessao.email : null;
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ autenticado: false, mensagem: "Precisa de iniciar sessão." }));
+        return;
+    }
+
+    db.query(
+        `SELECT e.id AS explicador_id, e.nome AS explicador_nome,
+                s.id, s.mensagem, s.estado, s.created_at,
+                u.nome AS aluno_nome, u.email AS aluno_email,
+                d.nome AS disciplina_nome, c.nome AS curso_nome
+         FROM explicadores e
+         LEFT JOIN utilizadores eu ON eu.id = e.utilizador_id
+         LEFT JOIN solicitacoes_apoio s ON s.explicador_id = e.id
+         LEFT JOIN utilizadores u ON u.id = s.utilizador_id
+         LEFT JOIN disciplinas d ON d.id = s.disciplina_id
+         LEFT JOIN cursos_academicos c ON c.id = d.curso_academico_id
+         WHERE lower(COALESCE(eu.email, e.email)) = lower($1)
+         ORDER BY s.id DESC NULLS LAST`,
+        [emailUtilizador]
+    )
+        .then((resultado) => {
+            const explicador = resultado.rows[0];
+            const solicitacoes = resultado.rows.filter((item) => item.id !== null);
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({
+                autenticado: true,
+                explicador: explicador ? { id: explicador.explicador_id, nome: explicador.explicador_nome } : null,
+                solicitacoes
+            }));
+        })
+        .catch((erro) => {
+            console.error("Erro ao buscar solicitações do explicador:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ autenticado: false, mensagem: "Erro ao carregar as solicitações." }));
+        });
+
+    return;
+}
+
+// Permite ao explicador atualizar apenas o estado das suas solicitações.
+if (req.method === "PATCH" && req.url.startsWith("/minhas-solicitacoes-explicador/")) {
+    const sessionId = obterSessao(req);
+    const sessao = sessionId ? sessoes.get(sessionId) : null;
+    const emailUtilizador = sessao && sessao.tipo === "utilizador" ? sessao.email : null;
+    const id = Number(req.url.split("/").pop());
+
+    if (!emailUtilizador) {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ autenticado: false, mensagem: "Precisa de iniciar sessão." }));
+        return;
+    }
+
+    let dados = "";
+    req.on("data", (parte) => { dados += parte; });
+    req.on("end", async () => {
+        try {
+            const payload = JSON.parse(dados || "{}");
+            const estado = typeof payload.estado === "string" ? payload.estado.trim().toLowerCase() : "";
+            if (!Number.isInteger(id) || id <= 0 || !["aceite", "recusada"].includes(estado)) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Solicitação ou estado inválido." }));
+                return;
+            }
+
+            const resultado = await db.query(
+                `UPDATE solicitacoes_apoio s
+                 SET estado = $1
+                 FROM explicadores e
+                                 LEFT JOIN utilizadores u ON u.id = e.utilizador_id
+                                 WHERE s.id = $2 AND s.explicador_id = e.id
+                                     AND lower(COALESCE(u.email, e.email)) = lower($3)
+                                     AND s.estado = 'pendente'
+                 RETURNING s.id, s.estado`,
+                [estado, id, emailUtilizador]
+            );
+
+            if (resultado.rows.length === 0) {
+                res.writeHead(404, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ mensagem: "Solicitação não encontrada ou já decidida." }));
+                return;
+            }
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Estado da solicitação atualizado.", solicitacao: resultado.rows[0] }));
+        } catch (erro) {
+            console.error("Erro ao atualizar solicitação do explicador:", erro.message);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ mensagem: "Erro ao atualizar a solicitação." }));
+        }
+    });
+
+    return;
+}
+
 if (req.method === "POST" && req.url === "/solicitacoes-apoio") {
     const sessionId = obterSessao(req);
     const sessao = sessionId ? sessoes.get(sessionId) : null;

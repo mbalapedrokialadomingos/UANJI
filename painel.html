@@ -83,6 +83,7 @@
                         <input type="hidden" id="explicadorAcademicoId">
                         <div class="campo"><label for="nomeExplicadorAcademico">Nome</label><input id="nomeExplicadorAcademico" required></div>
                         <div class="campo"><label for="emailExplicadorAcademico">Email</label><input id="emailExplicadorAcademico" type="email" required></div>
+                        <div class="campo"><label for="passwordInicialExplicador">Password inicial</label><input id="passwordInicialExplicador" type="password" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}" title="Use pelo menos 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo." autocomplete="new-password" placeholder="Crie uma password forte"><small class="form-help">Obrigatória ao criar; ao editar, preencha apenas para redefinir. Use maiúscula, minúscula, número e símbolo.</small></div>
                         <div class="campo"><label for="especialidadeExplicadorAcademico">Especialidade</label><input id="especialidadeExplicadorAcademico"></div>
                         <div class="campo"><label for="bioExplicadorAcademico">Biografia</label><textarea id="bioExplicadorAcademico" rows="3"></textarea></div>
                         <div class="admin-form-actions"><button class="btn btn-primary" type="submit">Guardar explicador</button><button id="btnCancelarExplicador" class="btn btn-ghost" type="button" hidden>Cancelar</button></div>

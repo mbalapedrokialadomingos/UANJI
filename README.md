@@ -96,6 +96,22 @@ psql -U postgres -d projecto2 -f database/migracao_pedidos_eliminacao_apoio.sql
 
 Esta migração é segura para executar mais do que uma vez. Não cria outro banco, não apaga dados e não altera as tabelas existentes.
 
+Para ativar o primeiro acesso obrigatório dos explicadores numa base já existente, execute também:
+
+```bash
+psql -U postgres -d projecto2 -f database/migracao_conta_explicador.sql
+```
+
+Para adicionar os campos opcionais do perfil académico dos alunos, execute também:
+
+```bash
+psql -U postgres -d projecto2 -f database/migracao_perfil_aluno.sql
+```
+
+Esta migração adiciona sexo, curso, instituição, ano da faculdade e data de nascimento sem alterar os dados existentes.
+
+Esta migração adiciona apenas a coluna `utilizadores.exigir_alteracao_password`, com valor `false` para as contas existentes.
+
 No final, confirme que a camada académica está lá:
 
 ```bash
@@ -148,3 +164,34 @@ Depois, abra no navegador:
 ```text
 http://localhost:3000
 ```
+
+### 6. Área do explicador
+
+Os explicadores associados a um utilizador através de `explicadores.utilizador_id` podem aceder à área própria em:
+
+```text
+http://localhost:3000/explicador.html
+```
+
+Essa página permite consultar as solicitações de apoio recebidas e aceitar ou recusar pedidos pendentes. O acesso utiliza a mesma sessão do login existente.
+
+As APIs usadas pela página são:
+
+- `GET /minhas-solicitacoes-explicador`
+- `PATCH /minhas-solicitacoes-explicador/:id`
+
+Não foram criadas tabelas nem alteradas as tabelas, relações ou dados existentes.
+
+### 7. Criar acesso de um explicador
+
+No **Painel Administrativo**, abra **Gestão académica** e use o formulário **Adicionar explicador**. Preencha o nome, email, especialidade, biografia e uma **password inicial** com pelo menos 8 caracteres.
+
+Ao guardar, o sistema cria uma conta em `utilizadores` com a password protegida por bcrypt, associa-a ao explicador e marca o primeiro acesso como obrigatório. O explicador entra usando o email e a password inicial no botão **Entrar** da página principal. Na primeira entrada será encaminhado para alterar a password; depois poderá abrir:
+
+```text
+http://localhost:3000/explicador.html
+```
+
+Se o email já pertencer a uma conta, o sistema não substitui a password existente. Nesse caso, use outro email ou faça a associação de um utilizador existente através do painel.
+
+Se a password inicial tiver sido esquecida ou a conta tiver sido criada antes deste fluxo, abra **Editar** no explicador, introduza uma nova password inicial com pelo menos 8 caracteres e guarde. Essa password será válida para o próximo login e o explicador será novamente encaminhado para alterá-la.

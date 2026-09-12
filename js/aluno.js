@@ -3,9 +3,52 @@
 const nomeAluno = document.getElementById("nomeAluno");
 const perfilNomeAluno = document.getElementById("perfilNomeAluno");
 const perfilEmailAluno = document.getElementById("perfilEmailAluno");
+const formPerfilAluno = document.getElementById("formPerfilAluno");
+const mensagemPerfilAluno = document.getElementById("mensagemPerfilAluno");
 const listaMinhasInscricoes = document.getElementById("listaMinhasInscricoes");
 const btnLogoutAluno = document.getElementById("btnLogoutAluno");
 const listaSolicitacoesAluno = document.getElementById("listaSolicitacoesAluno");
+const resumoPerfilAluno = document.getElementById("resumoPerfilAluno");
+const btnEditarPerfilAluno = document.getElementById("btnEditarPerfilAluno");
+const linksSidebarAluno = document.querySelectorAll(".aluno-sidebar-link");
+const secoesAluno = document.querySelectorAll(".aluno-section");
+
+function valorPerfil(valor) {
+    return valor || "Não informado";
+}
+
+function actualizarResumoPerfil() {
+    document.getElementById("perfilSexoResumo").textContent = valorPerfil(document.getElementById("perfilSexoAluno").value);
+    document.getElementById("perfilCursoResumo").textContent = valorPerfil(document.getElementById("perfilCursoAluno").value);
+    document.getElementById("perfilInstituicaoResumo").textContent = valorPerfil(document.getElementById("perfilInstituicaoAluno").value);
+    const ano = document.getElementById("perfilAnoAluno").value;
+    document.getElementById("perfilAnoResumo").textContent = ano ? `${ano}.º ano` : "Não informado";
+    const data = document.getElementById("perfilDataNascimentoAluno").value;
+    document.getElementById("perfilDataNascimentoResumo").textContent = data
+        ? new Date(`${data}T00:00:00`).toLocaleDateString("pt-PT")
+        : "Não informado";
+}
+
+btnEditarPerfilAluno.addEventListener("click", () => {
+    resumoPerfilAluno.hidden = true;
+    btnEditarPerfilAluno.hidden = true;
+    formPerfilAluno.hidden = false;
+});
+
+function abrirSecaoAluno(id) {
+    secoesAluno.forEach((secao) => {
+        secao.hidden = secao.id !== id;
+    });
+    linksSidebarAluno.forEach((link) => {
+        link.classList.toggle("active", link.getAttribute("href") === `#${id}`);
+    });
+}
+
+linksSidebarAluno.forEach((link) => link.addEventListener("click", (evento) => {
+    evento.preventDefault();
+    abrirSecaoAluno(link.getAttribute("href").slice(1));
+    window.history.replaceState(null, "", link.getAttribute("href"));
+}));
 
 // Busca o perfil do aluno autenticado e valida se a sessão ainda está ativa.
 async function carregarPerfilAluno() {
@@ -27,6 +70,14 @@ async function carregarPerfilAluno() {
         nomeAluno.textContent = dados.utilizador.nome;
         perfilNomeAluno.textContent = dados.utilizador.nome;
         perfilEmailAluno.textContent = dados.utilizador.email;
+        document.getElementById("perfilSexoAluno").value = dados.utilizador.sexo || "";
+        document.getElementById("perfilCursoAluno").value = dados.utilizador.curso || "";
+        document.getElementById("perfilInstituicaoAluno").value = dados.utilizador.instituicao || "";
+        document.getElementById("perfilAnoAluno").value = dados.utilizador.anoFaculdade || "";
+        document.getElementById("perfilDataNascimentoAluno").value = dados.utilizador.dataNascimento
+            ? String(dados.utilizador.dataNascimento).slice(0, 10)
+            : "";
+        actualizarResumoPerfil();
         carregarInscricoesAluno();
         carregarSolicitacoesAluno();
     } catch (erro) {
@@ -34,6 +85,42 @@ async function carregarPerfilAluno() {
         window.location.href = "/";
     }
 }
+
+formPerfilAluno.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const botao = evento.currentTarget.querySelector("button[type='submit']");
+    botao.disabled = true;
+    mensagemPerfilAluno.textContent = "A guardar...";
+
+    try {
+        const resposta = await fetch("/perfil", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                sexo: document.getElementById("perfilSexoAluno").value,
+                curso: document.getElementById("perfilCursoAluno").value,
+                instituicao: document.getElementById("perfilInstituicaoAluno").value,
+                anoFaculdade: document.getElementById("perfilAnoAluno").value,
+                dataNascimento: document.getElementById("perfilDataNascimentoAluno").value
+            })
+        });
+        const dados = await resposta.json();
+        mensagemPerfilAluno.textContent = dados.mensagem;
+        mensagemPerfilAluno.className = `status-message ${resposta.ok ? "success" : "error"}`;
+        if (resposta.ok) {
+            actualizarResumoPerfil();
+            formPerfilAluno.hidden = true;
+            resumoPerfilAluno.hidden = false;
+            btnEditarPerfilAluno.hidden = false;
+        }
+    } catch (erro) {
+        console.error("Erro ao actualizar perfil:", erro);
+        mensagemPerfilAluno.textContent = "Não foi possível guardar as informações.";
+        mensagemPerfilAluno.className = "status-message error";
+    } finally {
+        botao.disabled = false;
+    }
+});
 
 async function carregarSolicitacoesAluno() {
     try {

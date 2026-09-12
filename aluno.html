@@ -8,48 +8,71 @@
 </head>
 <body class="aluno-page">
     <main class="aluno-shell">
-        <nav class="aluno-navbar" aria-label="Navegação da área do aluno">
+        <aside class="aluno-sidebar" aria-label="Navegação da área do aluno">
             <a class="aluno-brand" href="/" aria-label="Página inicial">
                 <span class="aluno-brand-mark">U</span>
-                <span><strong>UNJILA</strong><small>Área académica</small></span>
+                <span><strong>UANJI</strong><small>Área académica</small></span>
             </a>
-            <div class="aluno-nav-links">
-                <a href="#perfilAluno">Meu perfil</a>
-                <a href="#minhasFormacoes">Minhas formações</a>
-                <button id="btnLogoutAluno" class="btn btn-ghost btn-small" type="button">Terminar sessão</button>
+            <div class="aluno-sidebar-divider"></div>
+            <p class="aluno-sidebar-label">Menu</p>
+            <nav class="aluno-sidebar-nav" aria-label="Secções do perfil">
+                <a class="aluno-sidebar-link" href="#perfilAluno"><span class="aluno-sidebar-index">01</span><strong>Informações pessoais</strong></a>
+                <a class="aluno-sidebar-link" href="#solicitacoesApoioAluno"><span class="aluno-sidebar-index">02</span><strong>Solicitações de apoio</strong></a>
+                <a class="aluno-sidebar-link" href="#minhasFormacoes"><span class="aluno-sidebar-index">03</span><strong>Formações</strong></a>
+            </nav>
+            <div class="aluno-sidebar-footer">
+                <button id="btnLogoutAluno" class="aluno-sidebar-logout" type="button"><span aria-hidden="true">↪</span> Terminar sessão</button>
             </div>
-        </nav>
+        </aside>
 
-        <section class="aluno-hero" aria-labelledby="nomeAluno">
-            <div class="aluno-hero-content">
-                <h1 id="nomeAluno">Aluno</h1>
-                <p>Encontra disciplinas, consulta explicadores e acompanha o teu percurso académico.</p>
-            </div>
-        </section>
+        <div class="aluno-main-content">
+            <section class="aluno-hero" aria-labelledby="nomeAluno">
+                <div class="aluno-hero-content">
+                    <h1 id="nomeAluno">Aluno</h1>
+                </div>
+            </section>
 
-        <section id="perfilAluno" class="aluno-section aluno-profile-section" aria-labelledby="tituloPerfilAluno">
-            <div class="aluno-section-heading">
-                <div><h2 id="tituloPerfilAluno">Meu perfil</h2></div>
-            </div>
-            <div class="aluno-profile-card">
-                <div><span>Nome</span><strong id="perfilNomeAluno">A carregar...</strong></div>
-                <div><span>Email</span><strong id="perfilEmailAluno">A carregar...</strong></div>
-            </div>
-        </section>
+            <section id="perfilAluno" class="aluno-section aluno-profile-section" aria-labelledby="tituloPerfilAluno" hidden>
+                <div class="aluno-section-heading">
+                    <h2 id="tituloPerfilAluno">Informações pessoais</h2>
+                </div>
+                <div class="aluno-profile-card">
+                    <div class="aluno-profile-view" id="resumoPerfilAluno">
+                        <div><span>Nome</span><strong id="perfilNomeAluno">A carregar...</strong></div>
+                        <div><span>Email</span><strong id="perfilEmailAluno">A carregar...</strong></div>
+                        <div><span>Sexo</span><strong id="perfilSexoResumo">Não informado</strong></div>
+                        <div><span>Curso</span><strong id="perfilCursoResumo">Não informado</strong></div>
+                        <div><span>Instituição</span><strong id="perfilInstituicaoResumo">Não informado</strong></div>
+                        <div><span>Ano da faculdade</span><strong id="perfilAnoResumo">Não informado</strong></div>
+                        <div><span>Data de nascimento</span><strong id="perfilDataNascimentoResumo">Não informado</strong></div>
+                    </div>
+                    <button id="btnEditarPerfilAluno" class="btn btn-ghost btn-small aluno-profile-edit" type="button">Editar</button>
+                    <form id="formPerfilAluno" class="aluno-profile-form" hidden>
+                        <div class="campo"><label for="perfilSexoAluno">Sexo</label><select id="perfilSexoAluno"><option value="">Prefiro não informar</option><option value="Feminino">Feminino</option><option value="Masculino">Masculino</option><option value="Outro">Outro</option></select></div>
+                        <div class="campo"><label for="perfilCursoAluno">Curso</label><input id="perfilCursoAluno" maxlength="150" placeholder="Ex.: Engenharia Informática"></div>
+                        <div class="campo"><label for="perfilInstituicaoAluno">Instituição</label><input id="perfilInstituicaoAluno" maxlength="150" placeholder="Nome da universidade"></div>
+                        <div class="campo"><label for="perfilAnoAluno">Ano da faculdade</label><select id="perfilAnoAluno"><option value="">Seleccionar</option><option value="1">1.º ano</option><option value="2">2.º ano</option><option value="3">3.º ano</option><option value="4">4.º ano</option><option value="5">5.º ano</option><option value="6">6.º ano</option><option value="7">7.º ano</option><option value="8">8.º ano</option><option value="9">9.º ano</option><option value="10">10.º ano</option></select></div>
+                        <div class="campo"><label for="perfilDataNascimentoAluno">Data de nascimento</label><input id="perfilDataNascimentoAluno" type="date"></div>
+                        <div class="aluno-profile-form-actions"><button class="btn btn-primary btn-small" type="submit">Guardar informações</button><span id="mensagemPerfilAluno" class="status-message" role="status" aria-live="polite"></span></div>
+                    </form>
+                </div>
+            </section>
 
-        <section id="solicitacoesApoioAluno" class="aluno-section aluno-support-section" aria-labelledby="tituloApoioAluno">
-            <div class="aluno-section-heading">
-                <div><h2 id="tituloApoioAluno">Solicitações de Apoio</h2></div>
-            </div>
-            <div class="aluno-support-card">
-                <div id="listaSolicitacoesAluno" class="lista-solicitacoes-aluno"><p class="empty-state">A carregar solicitações...</p></div>
-            </div>
-        </section>
+            <section id="solicitacoesApoioAluno" class="aluno-section aluno-support-section" aria-labelledby="tituloApoioAluno" hidden>
+                <div class="aluno-section-heading">
+                    <h2 id="tituloApoioAluno">Solicitações de apoio</h2>
+                </div>
+                <div class="aluno-support-card">
+                    <div id="listaSolicitacoesAluno" class="lista-solicitacoes-aluno"><p class="empty-state">A carregar solicitações...</p></div>
+                </div>
+            </section>
 
-        <section id="minhasFormacoes" class="aluno-section aluno-formacoes-section" aria-labelledby="tituloFormacoesAluno">
-            <div class="aluno-section-heading"><div><h2 id="tituloFormacoesAluno">Minhas formações</h2></div></div>
-            <div id="listaMinhasInscricoes" class="lista-aluno"></div>
-        </section>
+            <section id="minhasFormacoes" class="aluno-section aluno-formacoes-section" aria-labelledby="tituloFormacoesAluno" hidden>
+                <div class="aluno-section-heading"><h2 id="tituloFormacoesAluno">Minhas formações</h2></div>
+                <div id="listaMinhasInscricoes" class="lista-aluno"></div>
+            </section>
+
+        </div>
     </main>
 
     <div id="modalAcademia" class="modal" role="dialog" aria-modal="true" aria-labelledby="tituloModalAcademia">

@@ -2395,6 +2395,25 @@ footer {
     color: white;
 }
 
+.home-page .footer-contacto {
+    display: flex;
+    gap: 14px;
+    margin: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.home-page .footer-contacto a {
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+}
+
+.home-page .footer-contacto a:hover,
+.home-page .footer-contacto a:focus-visible {
+    color: #fff;
+    text-decoration: underline;
+}
+
 .home-page footer span {
     margin-left: 10px;
 }
@@ -3021,23 +3040,19 @@ footer {
 .home-page .dot-cyan { background: var(--home-cyan); }
 .home-page .dot-gold { background: #f6bd60; }
 
-/* =========================
-   NOVA ÁREA DO ALUNO
-========================= */
-
-.aluno-page {
+.explicador-page {
     min-height: 100vh;
     padding: 0 24px 56px;
     background: #f4f7fb;
     color: #172033;
 }
 
-.aluno-shell {
-    max-width: 1180px;
+.explicador-shell {
+    max-width: 1080px;
     margin: 0 auto;
 }
 
-.aluno-navbar {
+.explicador-navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -3046,11 +3061,286 @@ footer {
     border-bottom: 1px solid #e1e8f0;
 }
 
-.aluno-brand {
+.explicador-brand {
     display: inline-flex;
     align-items: center;
     gap: 10px;
     color: #14213d;
+    text-decoration: none;
+}
+
+.explicador-brand-mark {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 10px;
+    background: #173b72;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 900;
+}
+
+.explicador-brand strong,
+.explicador-brand small {
+    display: block;
+}
+
+.explicador-brand strong {
+    font-size: 15px;
+    letter-spacing: 0.08em;
+}
+
+.explicador-brand small {
+    margin-top: 2px;
+    color: #718096;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.explicador-header,
+.explicador-section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.explicador-header {
+    margin: 42px 0 34px;
+    padding: 32px 34px;
+    border: 1px solid #dce6f0;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #173b72 0%, #245b91 100%);
+    box-shadow: 0 16px 30px rgba(23, 59, 114, 0.13);
+}
+
+.explicador-header h1,
+.explicador-section-heading h2 {
+    margin: 0;
+    color: #fff;
+}
+
+.explicador-header h1 {
+    margin-top: 7px;
+    font-size: clamp(1.8rem, 3vw, 2.7rem);
+}
+
+.explicador-header p,
+.explicador-section-heading p {
+    margin: 8px 0 0;
+    color: #718096;
+    font-size: 14px;
+}
+
+.explicador-header p {
+    color: #d9e7f5;
+}
+
+.explicador-eyebrow {
+    display: block;
+    color: #7d9fc2;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.explicador-header .explicador-eyebrow {
+    color: #a9c9e7;
+}
+
+.explicador-header-stat {
+    display: flex;
+    min-width: 126px;
+    padding: 14px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-direction: column;
+    text-align: right;
+}
+
+.explicador-header-stat strong {
+    color: #fff;
+    font-size: 18px;
+}
+
+.explicador-header-stat span {
+    margin-top: 3px;
+    color: #c3d9ed;
+    font-size: 12px;
+}
+
+.explicador-section-heading p {
+    max-width: 300px;
+}
+
+.explicador-section-heading h2 {
+    margin-top: 6px;
+    color: #172033;
+}
+
+.explicador-section {
+    padding-top: 30px;
+    border-top: 1px solid #dfe7ef;
+}
+
+.explicador-requests-list {
+    display: grid;
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.explicador-request-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px;
+    border: 1px solid #e1e8f0;
+    border-radius: 13px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(31, 61, 96, 0.05);
+}
+
+.explicador-request-content {
+    min-width: 0;
+    flex: 1;
+}
+
+.explicador-request-content h3 {
+    margin: 0 0 8px;
+    color: #173b72;
+    font-size: 18px;
+}
+
+.explicador-request-content p {
+    margin: 4px 0;
+    color: #718096;
+    font-size: 13px;
+}
+
+.explicador-request-message {
+    margin-top: 16px !important;
+    padding-top: 14px;
+    border-top: 1px solid #edf1f5;
+    color: #536176 !important;
+}
+
+.explicador-request-meta {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.explicador-request-meta span,
+.explicador-request-meta strong {
+    display: block;
+}
+
+.explicador-request-meta span {
+    color: #8a97a8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.explicador-request-meta strong {
+    margin-top: 3px;
+    color: #536176;
+    font-size: 13px;
+}
+
+.explicador-request-actions {
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 10px;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+    .explicador-page {
+        padding: 0 14px 36px;
+    }
+
+    .explicador-navbar,
+    .explicador-header,
+    .explicador-section-heading,
+    .explicador-request-card {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .explicador-navbar {
+        padding: 16px 0;
+    }
+
+    .explicador-header {
+        margin: 28px 0 22px;
+        padding: 24px 22px;
+    }
+
+    .explicador-header-stat {
+        width: 100%;
+        text-align: left;
+    }
+
+    .explicador-request-card {
+        gap: 18px;
+    }
+
+    .explicador-request-actions {
+        width: 100%;
+        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+/* =========================
+   NOVA ÁREA DO ALUNO
+========================= */
+
+.aluno-page {
+    min-height: 100vh;
+    padding: 28px;
+    background: #eef3f8;
+    color: #172033;
+}
+
+.aluno-shell {
+    display: grid;
+    max-width: 1440px;
+    min-height: calc(100vh - 56px);
+    grid-template-columns: 258px minmax(0, 1fr);
+    gap: 28px;
+    margin: 0 auto;
+}
+
+.aluno-sidebar {
+    position: sticky;
+    top: 28px;
+    display: flex;
+    min-height: calc(100vh - 56px);
+    padding: 25px 16px 18px;
+    border: 1px solid #d9e3ed;
+    border-radius: 20px;
+    background: #153660;
+    box-shadow: 0 18px 40px rgba(31, 61, 96, 0.13);
+    flex-direction: column;
+}
+
+.aluno-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 9px;
+    color: #fff;
     text-decoration: none;
 }
 
@@ -3060,7 +3350,7 @@ footer {
     height: 34px;
     place-items: center;
     border-radius: 10px;
-    background: #173b72;
+    background: #56b8b0;
     color: #fff;
     font-size: 17px;
     font-weight: 900;
@@ -3078,16 +3368,165 @@ footer {
 
 .aluno-brand small {
     margin-top: 2px;
-    color: #718096;
+    color: #a9c9e7;
     font-size: 10px;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
-.aluno-nav-links {
+.aluno-sidebar-divider {
+    height: 1px;
+    margin: 28px 9px 23px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.aluno-sidebar-label,
+.aluno-section-kicker,
+.aluno-hero-kicker {
+    color: #78c9c2;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.aluno-sidebar-label {
+    margin: 0 9px 12px;
+}
+
+.aluno-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.aluno-sidebar-link {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 11px;
+    min-height: 62px;
+    padding: 10px 9px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    color: #c5d8ea;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.aluno-sidebar-link:hover,
+.aluno-sidebar-link:focus-visible,
+.aluno-sidebar-link.active {
+    border-color: rgba(143, 214, 206, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.aluno-sidebar-link strong,
+.aluno-sidebar-link small {
+    display: block;
+}
+
+.aluno-sidebar-link strong {
+    font-size: 12px;
+}
+
+.aluno-sidebar-link small {
+    margin-top: 4px;
+    color: #8faecb;
+    font-size: 11px;
+}
+
+.aluno-sidebar-index {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    color: #a9c9e7;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.aluno-sidebar-link.active .aluno-sidebar-index {
+    border-color: #8fd6ce;
+    background: #8fd6ce;
+    color: #153660;
+}
+
+.aluno-sidebar-footer {
+    display: grid;
+    gap: 18px;
+    margin-top: auto;
+    padding: 18px 9px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.aluno-sidebar-note {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.aluno-sidebar-note-mark {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(143, 214, 206, 0.2);
+    color: #8fd6ce;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.aluno-sidebar-note strong,
+.aluno-sidebar-note small {
+    display: block;
+}
+
+.aluno-sidebar-note strong {
+    color: #fff;
+    font-size: 10px;
+}
+
+.aluno-sidebar-note small {
+    margin-top: 3px;
+    color: #8faecb;
+    font-size: 9px;
+}
+
+.aluno-sidebar-logout {
+    padding: 9px 0;
+    border: 0;
+    background: transparent;
+    color: #a9c9e7;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    text-align: left;
+}
+
+.aluno-sidebar-logout:hover {
+    color: #fff;
+}
+
+.aluno-main-content {
+    min-width: 0;
+}
+
+.aluno-hero-kicker {
+    display: block;
+    margin-bottom: 9px;
+    color: #8fd6ce;
+}
+
+.aluno-section-kicker {
+    display: block;
+    margin-bottom: 7px;
+    color: #3f8f91;
+    font-size: 10px;
 }
 
 .aluno-nav-links a {
@@ -3204,6 +3643,66 @@ footer {
 
 .aluno-profile-card {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.aluno-profile-view {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.aluno-profile-edit {
+    justify-self: start;
+}
+
+.aluno-profile-form {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 18px;
+    padding-top: 18px;
+    border-top: 1px solid #edf1f5;
+}
+
+.aluno-profile-form .campo {
+    display: grid;
+    gap: 6px;
+}
+
+.aluno-profile-form label {
+    color: #536176;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.aluno-profile-form input,
+.aluno-profile-form select {
+    width: 100%;
+    min-height: 40px;
+    padding: 9px 11px;
+    border: 1px solid #d5e0ea;
+    border-radius: 7px;
+    background: #fbfcfe;
+    color: #172033;
+    font: inherit;
+}
+
+.aluno-profile-form-actions {
+    display: flex;
+    align-items: center;
+    grid-column: 1 / -1;
+    gap: 14px;
+}
+
+.aluno-profile-form-actions .status-message {
+    margin: 0;
+}
+
+.aluno-profile-form[hidden],
+.aluno-profile-view[hidden],
+.aluno-profile-edit[hidden] {
+    display: none;
 }
 
 .aluno-profile-card span,
@@ -3581,30 +4080,50 @@ footer {
 
 @media (max-width: 760px) {
     .aluno-page {
-        padding: 0 14px 36px;
+        padding: 14px;
     }
 
-    .aluno-navbar {
+    .aluno-shell {
+        display: block;
+        min-height: 0;
+    }
+
+    .aluno-sidebar {
+        position: static;
+        min-height: 0;
+        margin-bottom: 18px;
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .aluno-sidebar-divider,
+    .aluno-sidebar-label,
+    .aluno-sidebar-footer {
+        display: none;
+    }
+
+    .aluno-sidebar-nav {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 16px;
+    }
+
+    .aluno-sidebar-link {
         align-items: flex-start;
+        min-height: 71px;
+        padding: 9px 7px;
         flex-direction: column;
-        gap: 14px;
-        padding: 16px 0;
+        gap: 6px;
     }
 
-    .aluno-nav-links {
-        width: 100%;
-        justify-content: space-between;
-        gap: 8px;
-        flex-wrap: wrap;
+    .aluno-sidebar-link strong {
+        font-size: 10px;
+        line-height: 1.25;
     }
 
-    .aluno-nav-links a {
-        font-size: 12px;
-    }
-
-    .aluno-nav-secondary {
-        padding-left: 0;
-        border-left: 0;
+    .aluno-sidebar-link small {
+        display: none;
     }
 
     .aluno-hero {
@@ -3624,6 +4143,14 @@ footer {
     }
 
     .aluno-profile-card {
+        grid-template-columns: 1fr;
+    }
+
+    .aluno-profile-view {
+        grid-template-columns: 1fr;
+    }
+
+    .aluno-profile-form {
         grid-template-columns: 1fr;
     }
 
@@ -4100,5 +4627,9 @@ footer {
     .home-page footer {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .home-page .footer-contacto {
+        justify-content: flex-start;
     }
 }

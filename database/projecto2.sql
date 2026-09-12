@@ -308,6 +308,12 @@ CREATE TABLE public.utilizadores (
     nome character varying(100) NOT NULL,
     email character varying(150) NOT NULL,
     password_hash character varying(255) NOT NULL,
+    exigir_alteracao_password boolean NOT NULL DEFAULT false,
+    sexo character varying(30),
+    curso character varying(150),
+    instituicao character varying(150),
+    ano_faculdade integer,
+    data_nascimento date,
     data_criacao timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
 

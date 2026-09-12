@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área do explicador</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="explicador-page">
+    <main class="explicador-shell">
+        <nav class="explicador-navbar" aria-label="Navegação da área do explicador">
+            <a class="explicador-brand" href="/" aria-label="Página inicial">
+                <span class="explicador-brand-mark">U</span>
+                <span><strong>UANJI</strong><small>Área do explicador</small></span>
+            </a>
+            <button id="btnLogoutExplicador" class="btn btn-ghost btn-small" type="button">Terminar sessão</button>
+        </nav>
+
+        <header class="explicador-header">
+            <div>
+                <span class="explicador-eyebrow">Painel do explicador</span>
+                <h1 id="nomeExplicador">A carregar o teu perfil...</h1>
+                <p>Consulta e responde aos pedidos de apoio dos teus alunos.</p>
+            </div>
+            <div class="explicador-header-stat">
+                <strong id="contadorSolicitacoesExplicador">0 pedidos</strong>
+                <span>na tua área</span>
+            </div>
+        </header>
+
+        <section class="explicador-section" aria-labelledby="tituloSolicitacoesExplicador">
+            <div class="explicador-section-heading">
+                <div>
+                    <span class="explicador-eyebrow">Actividade recente</span>
+                    <h2 id="tituloSolicitacoesExplicador">Pedidos de apoio</h2>
+                </div>
+                <p>Analisa cada pedido e actualiza o seu estado.</p>
+            </div>
+            <div id="estadoSolicitacoesExplicador" class="status-message" role="status" aria-live="polite"></div>
+            <div id="listaSolicitacoesExplicador" class="explicador-requests-list">
+                <p class="empty-state">A carregar solicitações...</p>
+            </div>
+        </section>
+    </main>
+    <script src="js/explicador.js"></script>
+</body>
+</html>
