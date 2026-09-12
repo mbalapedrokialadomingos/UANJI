@@ -75,6 +75,11 @@ function fecharModalAtual() {
     modalFormacao.classList.remove("ativo");
 }
 
+function validarEmailFormulario(email) {
+    const emailNormalizado = typeof email === "string" ? email.trim() : "";
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalizado);
+}
+
 // Cria o formulário de inscrição para uma formação específica.
 function mostrarFormularioInscricao(formacao) {
     const nomePadrao = utilizadorAtual?.nome || "";
@@ -159,9 +164,9 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
             </div>
 
             <div class="auth-panel active" data-panel="login">
-                <form id="loginForm" class="auth-form">
+                <form id="loginForm" class="auth-form" novalidate>
                     <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" placeholder="Digite o seu email" required>
+                    <input type="text" id="loginEmail" placeholder="Digite o seu email" inputmode="email" autocomplete="email" required>
 
                     <label for="loginPassword">Password</label>
                     <input type="password" id="loginPassword" placeholder="Digite a sua password" required>
@@ -172,12 +177,13 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
             </div>
 
             <div class="auth-panel" data-panel="registar">
-                <form id="registarForm" class="auth-form">
+                <form id="registarForm" class="auth-form" novalidate>
                     <label for="registarNome">Nome</label>
                     <input type="text" id="registarNome" placeholder="Digite o seu nome" required>
 
                     <label for="registarEmail">Email</label>
-                    <input type="email" id="registarEmail" placeholder="Digite o seu email" required>
+                    <input type="text" id="registarEmail" placeholder="Digite o seu email" inputmode="email" autocomplete="email" required>
+                    <small class="form-help">Use um email real e válido para criar a conta.</small>
 
                     <label for="registarPassword">Password</label>
                     <input type="password" id="registarPassword" placeholder="Crie uma password forte" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}" title="Use pelo menos 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo." autocomplete="new-password" required>
@@ -260,6 +266,11 @@ function mostrarModalAutenticacao(formacao = null, aposAutenticacao = null) {
         const email = document.getElementById("registarEmail").value.trim();
         const password = document.getElementById("registarPassword").value;
         const mensagem = document.getElementById("mensagemAuthRegistar");
+
+        if (!validarEmailFormulario(email)) {
+            mensagem.textContent = "Introduza um email válido antes de criar a conta.";
+            return;
+        }
 
         if (!passwordForte(password)) {
             mensagem.textContent = "A password deve ter pelo menos 8 caracteres, uma maiúscula, uma minúscula, um número e um símbolo.";

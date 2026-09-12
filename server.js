@@ -20,6 +20,22 @@ function passwordForte(password) {
         && /[^A-Za-z\d]/.test(password);
 }
 
+function emailValido(email) {
+    if (typeof email !== "string") {
+        return false;
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+    const valido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!valido.test(emailNormalizado)) {
+        return false;
+    }
+
+    const dominio = emailNormalizado.split("@")[1];
+    return Boolean(dominio && !dominio.includes("..") && !dominio.startsWith("."));
+}
+
 const mensagemPasswordFraca = "A password deve ter pelo menos 8 caracteres, uma letra maiúscula, uma letra minúscula, um número e um símbolo.";
 
 // Lê o cookie de sessão enviado pelo navegador e devolve o identificador.
@@ -83,9 +99,7 @@ if (req.method === "POST" && req.url === "/inscricao") {
                 return;
             }
 
-            const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailValido.test(inscricao.email)) {
+            if (!emailValido(inscricao.email)) {
                 res.writeHead(400, {
                     "Content-Type": "application/json"
                 });
@@ -1014,9 +1028,7 @@ if (req.method === "POST" && req.url === "/registar") {
                 return;
             }
 
-            const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-            if (!emailValido.test(email)) {
+            if (!emailValido(email)) {
                 res.writeHead(400, {
                     "Content-Type": "application/json"
                 });
