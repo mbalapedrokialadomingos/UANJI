@@ -146,8 +146,8 @@ ALTER TABLE ONLY public.solicitacoes_apoio
 -- Dados iniciais do INSTIC, mais coerentes com o Sprint 2.
 INSERT INTO public.cursos_academicos (nome, descricao, codigo, duracao)
 VALUES
-    ('Engenharia de Telecomunicações', 'Curso académico de engenharia orientado para redes, comunicação e infraestruturas.', 'ET', '4 anos'),
-    ('Engenharia Informática', 'Curso académico de software, sistemas distribuídos e tecnologias digitais.', 'EI', '4 anos')
+    ('Engenharia de Telecomunicações', 'Curso académico de engenharia orientado para redes de telecomunicações, comunicação de dados e infraestruturas de conectividade.', 'ET', '5 anos'),
+    ('Engenharia Informática', 'Curso académico de software, sistemas distribuídos e tecnologias digitais.', 'EI', '5 anos')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.disciplinas (nome, codigo, descricao, carga_horaria, curso_academico_id)

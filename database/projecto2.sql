@@ -434,8 +434,8 @@ COPY public.inscricoes (id, nome, email, formacao, data_inscricao, utilizador_id
 --
 
 COPY public.cursos_academicos (id, nome, descricao, codigo, duracao, created_at) FROM stdin;
-1	Engenharia de Telecomunicações	Curso académico de engenharia orientado para redes, comunicação e infraestruturas.	ET	4 anos	2026-09-09 00:00:00
-2	Engenharia Informática	Curso académico de software, sistemas distribuídos e tecnologias digitais.	EI	4 anos	2026-09-09 00:00:00
+1	Engenharia de Telecomunicações	Curso académico de engenharia orientado para redes de telecomunicações, comunicação de dados e infraestruturas de conectividade.	ET	5 anos	2026-09-09 00:00:00
+2	Engenharia Informática	Curso académico de software, sistemas distribuídos e tecnologias digitais.	EI	5 anos	2026-09-09 00:00:00
 \.
 
 

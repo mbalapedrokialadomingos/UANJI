@@ -106,7 +106,14 @@ Devem aparecer também `solicitacoes_apoio` e `pedidos_eliminacao_apoio`.
 
 Se o PostgreSQL da sua máquina tiver outra palavra-passe, altere o campo `password` em `db/database.js` para o valor correcto.
 
-### 3. Confirmar a ligação da aplicação
+### 3. Executar o arquivo atualizar_cursos no pgAdmin
+
+1. Abra o pgAdmin e ligue-se ao servidor PostgreSQL.
+2. Clique em **Databases** e escolha `projecto2`
+3. Clica com botão direito, escolha **Query Tool** e escolha **File > Open**.
+4. Abra `database/atualizar_cursos.sql` e execute o script.
+
+### 4. Confirmar a ligação da aplicação
 
 As credenciais usadas atualmente pela aplicação estão em `db/database.js`:
 
@@ -118,7 +125,7 @@ As credenciais usadas atualmente pela aplicação estão em `db/database.js`:
 
 Se o PostgreSQL da sua máquina tiver outra palavra-passe, altere o campo `password` nesse ficheiro antes de iniciar o servidor. Se utilizar outro utilizador, host, porta ou nome de base, atualize também os campos correspondentes.
 
-### 4. Instalar as dependências
+### 5. Instalar as dependências
 
 Na pasta do projeto, execute:
 
@@ -128,7 +135,7 @@ npm install
 
 As versões instaladas estão registadas em `package-lock.json`.
 
-### 5. Iniciar o servidor
+### 6. Iniciar o servidor
 
 Execute:
 
