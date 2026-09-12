@@ -2628,6 +2628,10 @@ let arquivo;
 
 });
 
-server.listen(3000, () => {
-    console.log("Servidor rodando em http://localhost:3000");
-});
+if (process.env.VERCEL) {
+    module.exports = server;
+} else {
+    server.listen(3000, () => {
+        console.log("Servidor rodando em http://localhost:3000");
+    });
+}
