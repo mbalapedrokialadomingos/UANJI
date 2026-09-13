@@ -8,8 +8,82 @@ const path = require("path");
 const db = require("./db/database");
 const bcrypt = require("bcrypt");
 
-// Guarda todas as sessões ativas do navegador em memória.
+// Guarda todas as sessões ativas do navegador em memória e em base de dados
+// para que sobrevivam a reinícios da Vercel e a recargas da página.
 const sessoes = new Map();
+const DURACAO_SESSAO_MINUTOS = 60 * 24;
+
+async function garantirTabelaSessoes() {
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS sessoes (
+            id TEXT PRIMARY KEY,
+            dados JSONB NOT NULL,
+            expires_at TIMESTAMPTZ NOT NULL DEFAULT NOW() + INTERVAL '${DURACAO_SESSAO_MINUTOS} minutes'
+        )
+    `);
+}
+
+async function guardarSessao(sessionId, sessao) {
+    if (!sessionId) {
+        return;
+    }
+
+    await garantirTabelaSessoes();
+    await db.query(
+        `INSERT INTO sessoes (id, dados, expires_at)
+         VALUES ($1, $2::jsonb, NOW() + INTERVAL '${DURACAO_SESSAO_MINUTOS} minutes')
+         ON CONFLICT (id) DO UPDATE
+         SET dados = EXCLUDED.dados,
+             expires_at = NOW() + INTERVAL '${DURACAO_SESSAO_MINUTOS} minutes'`,
+        [sessionId, JSON.stringify(sessao)]
+    );
+    sessoes.set(sessionId, sessao);
+}
+
+async function carregarSessaoPersistida(sessionId) {
+    if (!sessionId) {
+        return null;
+    }
+
+    await garantirTabelaSessoes();
+
+    const resultado = await db.query(
+        "SELECT dados FROM sessoes WHERE id = $1 AND expires_at > NOW()",
+        [sessionId]
+    );
+
+    if (resultado.rows.length === 0) {
+        sessoes.delete(sessionId);
+        return null;
+    }
+
+    const sessao = resultado.rows[0].dados;
+    sessoes.set(sessionId, sessao);
+    return sessao;
+}
+
+async function removerSessao(sessionId) {
+    if (!sessionId) {
+        return;
+    }
+
+    await garantirTabelaSessoes();
+    await db.query("DELETE FROM sessoes WHERE id = $1", [sessionId]);
+    sessoes.delete(sessionId);
+}
+
+async function carregarSessaoAtual(req) {
+    const sessionId = obterSessao(req);
+    if (!sessionId) {
+        return null;
+    }
+
+    if (sessoes.has(sessionId)) {
+        return sessoes.get(sessionId);
+    }
+
+    return carregarSessaoPersistida(sessionId);
+}
 
 function passwordForte(password) {
     return typeof password === "string"
@@ -70,7 +144,12 @@ function sessaoEAdmin(req) {
 }
 
 // Configuração principal do servidor: todas as rotas da aplicação passam por aqui.
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
+    const sessionId = obterSessao(req);
+    if (sessionId && !sessoes.has(sessionId)) {
+        await carregarSessaoPersistida(sessionId);
+    }
+
     // =========================
 // INSCRIÇÃO DOS UTILIZADORES
 // =========================
@@ -342,7 +421,8 @@ if (req.method === "POST" && req.url === "/login") {
                 }
 
                 const sessionId = Math.random().toString(36).substring(2);
-                sessoes.set(sessionId, { tipo: "admin", usuario: administrador.usuario });
+                const sessaoAdmin = { tipo: "admin", usuario: administrador.usuario };
+                await guardarSessao(sessionId, sessaoAdmin);
 
                 res.writeHead(200, {
                     "Content-Type": "application/json",
@@ -417,12 +497,13 @@ if (req.method === "POST" && req.url === "/login") {
                 [utilizador.id, utilizador.email]
             );
             const eExplicador = explicador.rows.length > 0;
-            sessoes.set(sessionId, {
+            const sessaoUtilizador = {
                 tipo: "utilizador",
                 email: utilizador.email,
                 eExplicador,
                 exigirAlteracaoPassword: Boolean(utilizador.exigir_alteracao_password)
-            });
+            };
+            await guardarSessao(sessionId, sessaoUtilizador);
 
             res.writeHead(200, {
                 "Content-Type": "application/json",
@@ -505,7 +586,7 @@ if (req.method === "POST" && req.url === "/logout") {
     const sessionId = obterSessao(req);
 
     if (sessionId) {
-        sessoes.delete(sessionId);
+        await removerSessao(sessionId);
     }
 
     res.writeHead(200, {
