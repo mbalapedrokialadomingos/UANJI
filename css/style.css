@@ -1466,9 +1466,16 @@ footer {
     display: inline-flex;
     align-items: center;
     gap: 11px;
+    min-width: 0;
     color: white;
     text-decoration: none;
     line-height: 1.15;
+    flex-wrap: wrap;
+}
+
+.brand > span {
+    min-width: 0;
+    word-break: break-word;
 }
 
 .brand-mark {
@@ -2420,7 +2427,18 @@ footer {
 
 @media (max-width: 820px) {
     .home-page header {
+        display: flex;
         align-items: flex-start;
+        flex-wrap: wrap;
+        row-gap: 14px;
+    }
+
+    .home-page nav {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px 12px;
     }
 
     .home-page #inicio {
@@ -2447,15 +2465,21 @@ footer {
     .home-page nav {
         width: 100%;
         justify-content: space-between;
-        gap: 8px;
+        gap: 8px 10px;
     }
 
     .home-page nav a {
         font-size: 11px;
     }
 
+    .home-page .brand {
+        width: 100%;
+        align-items: center;
+    }
+
     .home-page .brand small {
-        display: none;
+        display: block;
+        white-space: normal;
     }
 
     .home-page #inicio h2 {
