@@ -1,197 +1,200 @@
 # UANJI
 
-## Como executar o projeto
+Aplicação web de gestão de inscrições, autenticação, área académica e apoio entre alunos e explicadores.
 
-### Pré-requisitos
+## Visão geral
 
-- Node.js 18 ou superior
-- PostgreSQL 16 ou superior
-- `psql` disponível no terminal, ou pgAdmin instalado
+Este projeto combina:
 
-### 1. Obter o projeto
+- frontend em HTML, CSS e JavaScript
+- backend em Node.js com servidor HTTP
+- autenticação por sessão
+- base de dados PostgreSQL
+- integração com Supabase para produção
+- deploy na Vercel
 
-Clone ou copie o projeto e entre na pasta:
+A aplicação inclui:
 
-```bash
-cd UANJI
-```
+- autenticação de alunos e administradores
+- gestão de inscrições e formações
+- painel académico com cursos, disciplinas e explicadores
+- associação de explicadores às disciplinas
+- pedidos de apoio entre aluno e explicador
+- fluxo de primeiro acesso para explicadores
 
-### 2. Criar e preencher a base de dados
+---
 
-O ficheiro `database/projecto2.sql` contém as tabelas, relações, dados de exemplo e sequências necessárias. Ele não cria a base de dados, por isso é necessário criar a base antes de importar o ficheiro.
+## Requisitos
 
-#### Opção A: através do terminal
+- Node.js 18+
+- PostgreSQL 16+
+- acesso ao Supabase ou a uma instância PostgreSQL local
+- Vercel para deployment
 
-1. Inicie o serviço do PostgreSQL.
-2. Crie uma base de dados chamada `projecto2`:
+---
 
-   ```bash
-   createdb -U postgres projecto2
-   ```
+## Instalação local
 
-   Se o comando `createdb` não estiver disponível, execute:
-
-   ```bash
-   psql -U postgres -c "CREATE DATABASE projecto2;"
-   ```
-
-3. Importe o esquema e os dados do projeto:
-
-   ```bash
-   psql -U postgres -d projecto2 -f database/projecto2.sql
-   ```
-
-   Quando for solicitada, introduza a palavra-passe do utilizador `postgres`.
-
-4. Confirme se as tabelas foram criadas:
-
-   ```bash
-   psql -U postgres -d projecto2 -c "\dt"
-   ```
-
-   Devem aparecer, entre outras, as tabelas `administradores`, `formacoes`, `inscricoes`, `servicos` e `utilizadores`.
-
-#### Opção B: através do pgAdmin
-
-1. Abra o pgAdmin e ligue-se ao servidor PostgreSQL.
-2. Clique com o botão direito em **Databases** e escolha **Create > Database**.
-3. Crie a base com o nome `projecto2` e o proprietário `postgres`.
-4. Selecione a base `projecto2`, abra **Query Tool** e escolha **File > Open**.
-5. Abra `database/projecto2.sql` e execute o script.
-
-#### Recriar também a camada académica do Sprint 2
-
-Se a máquina ainda não tiver os objetos académicos criados, importa-se também o script dedicado:
+### 1. Clonar o projeto
 
 ```bash
-psql -U postgres -d projecto2 -f database/sprint2_academico.sql
+cd "/caminho/para/UANJI"
 ```
 
-Esse script cria e liga as tabelas:
-
-- `cursos_academicos`
-- `disciplinas`
-- `explicadores`
-- `disciplina_explicadores`
-- `solicitacoes_apoio`
-- `pedidos_eliminacao_apoio`
-
-e carrega os dados iniciais de exemplo com cursos, disciplinas, explicadores e a associação entre disciplina e explicador.
-
-A tabela `pedidos_eliminacao_apoio` é usada quando um aluno pede para remover uma solicitação de apoio. O pedido fica pendente até o administrador aceitar ou recusar. A tabela original `solicitacoes_apoio` não é alterada.
-
-Se estiver a usar a mesma máquina com a base já criada, o passo mais simples é o seguinte:
-
-```bash
-psql -U postgres -d projecto2 -f database/sprint2_academico.sql
-```
-
-#### Atualizar uma base de dados já existente
-
-Se a base `projecto2` já foi criada e o ficheiro `database/sprint2_academico.sql` já foi executado anteriormente, execute a migração nova para criar apenas a estrutura dos pedidos de eliminação:
-
-```bash
-psql -U postgres -d projecto2 -f database/migracao_pedidos_eliminacao_apoio.sql
-```
-
-Esta migração é segura para executar mais do que uma vez. Não cria outro banco, não apaga dados e não altera as tabelas existentes.
-
-Para ativar o primeiro acesso obrigatório dos explicadores numa base já existente, execute também:
-
-```bash
-psql -U postgres -d projecto2 -f database/migracao_conta_explicador.sql
-```
-
-Para adicionar os campos opcionais do perfil académico dos alunos, execute também:
-
-```bash
-psql -U postgres -d projecto2 -f database/migracao_perfil_aluno.sql
-```
-
-Esta migração adiciona sexo, curso, instituição, ano da faculdade e data de nascimento sem alterar os dados existentes.
-
-Esta migração adiciona apenas a coluna `utilizadores.exigir_alteracao_password`, com valor `false` para as contas existentes.
-
-No final, confirme que a camada académica está lá:
-
-```bash
-psql -U postgres -d projecto2 -c "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('cursos_academicos','disciplinas','explicadores','disciplina_explicadores','solicitacoes_apoio','pedidos_eliminacao_apoio') ORDER BY table_name;"
-```
-
-Devem aparecer também `solicitacoes_apoio` e `pedidos_eliminacao_apoio`.
-
-Se o PostgreSQL da sua máquina tiver outra palavra-passe, altere o campo `password` em `db/database.js` para o valor correcto.
-
-### 3. Executar o arquivo atualizar_cursos no pgAdmin
-
-1. Abra o pgAdmin e ligue-se ao servidor PostgreSQL.
-2. Clique em **Databases** e escolha `projecto2`
-3. Clica com botão direito, escolha **Query Tool** e escolha **File > Open**.
-4. Abra `database/atualizar_cursos.sql` e execute o script.
-
-### 4. Confirmar a ligação da aplicação
-
-As credenciais usadas atualmente pela aplicação estão em `db/database.js`:
-
-- Utilizador: `postgres`
-- Palavra-passe: `12345678`
-- Host: `localhost`
-- Porta: `5432`
-- Base de dados: `projecto2`
-
-Se o PostgreSQL da sua máquina tiver outra palavra-passe, altere o campo `password` nesse ficheiro antes de iniciar o servidor. Se utilizar outro utilizador, host, porta ou nome de base, atualize também os campos correspondentes.
-
-### 5. Instalar as dependências
-
-Na pasta do projeto, execute:
+### 2. Instalar dependências
 
 ```bash
 npm install
 ```
 
-As versões instaladas estão registadas em `package-lock.json`.
+### 3. Configurar a base de dados
 
-### 6. Iniciar o servidor
+Cria uma base de dados PostgreSQL e importa os scripts necessários.
 
-Execute:
+#### Base principal
+
+```bash
+psql -U postgres -d projecto2 -f database/projecto2.sql
+```
+
+#### Camada académica
+
+```bash
+psql -U postgres -d projecto2 -f database/sprint2_academico.sql
+```
+
+#### Migrações adicionais
+
+Se a base já existir, executa as migrações necessárias:
+
+```bash
+psql -U postgres -d projecto2 -f database/migracao_pedidos_eliminacao_apoio.sql
+psql -U postgres -d projecto2 -f database/migracao_conta_explicador.sql
+psql -U postgres -d projecto2 -f database/migracao_perfil_aluno.sql
+psql -U postgres -d projecto2 -f database/migracao_sessoes.sql
+```
+
+A última migração cria a tabela de sessões para produção, porque o servidor não pode depender da memória local da instância em ambientes como a Vercel.
+
+### 4. Configurar a ligação da base de dados
+
+O ficheiro `db/database.js` define a ligação ao PostgreSQL:
+
+```js
+const db = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+```
+
+Em ambiente local, normalmente usa-se uma base PostgreSQL local e a variável `DATABASE_URL` deve apontar para essa base.
+
+### 5. Iniciar a aplicação
 
 ```bash
 npm start
 ```
 
-Depois, abra no navegador:
+A aplicação fica disponível em:
 
 ```text
 http://localhost:3000
 ```
 
-### 6. Área do explicador
+---
 
-Os explicadores associados a um utilizador através de `explicadores.utilizador_id` podem aceder à área própria em:
+## Sessões e produção na Vercel
 
-```text
-http://localhost:3000/explicador.html
+A aplicação guarda a sessão em PostgreSQL em vez de só em memória. Isso é importante porque a Vercel reinicia a aplicação em certas condições e a memória do processo desaparece.
+
+A tabela necessária é:
+
+- `public.sessoes`
+
+A migração correspondente está em:
+
+- `database/migracao_sessoes.sql`
+
+Sem esta tabela, os utilizadores podem voltar a aparecer como não autenticados após refresh ou após reinício do servidor.
+
+---
+
+## Estrutura principal
+
+- `server.js` — servidor principal da aplicação
+- `db/database.js` — ligação ao PostgreSQL
+- `js/` — scripts do frontend
+- `css/` — estilos
+- `database/` — SQL e migrações
+- `index.html` — página inicial
+- `admin.html` — login administrativo
+- `aluno.html` — área do aluno
+- `explicador.html` — área do explicador
+- `painel.html` — painel administrativo
+
+---
+
+## Fluxos principais
+
+### Autenticação
+
+- administrador entra com login e sessão protegida
+- aluno entra com email e password
+- sessão é persistida em base de dados
+
+### Gestão académica
+
+- adicionar e editar cursos académicos
+- criar disciplina e associar a curso
+- criar explicador e definir password inicial
+- associar explicador a disciplina
+
+### Apoio académico
+
+- aluno envia pedido de apoio a um explicador
+- explicador aceita ou recusa a solicitação
+- admin acompanha pedidos e estados
+
+---
+
+## Deploy na Vercel
+
+1. Faz push do projeto para o GitHub.
+2. Conecta o repositório na Vercel.
+3. Define a variável de ambiente `DATABASE_URL` com a ligação do Supabase/PostgreSQL.
+4. Faz redeploy do projeto.
+5. Garante que a tabela `public.sessoes` existe no banco.
+
+Arquivo de configuração da Vercel:
+
+- `vercel.json`
+
+---
+
+## Dicas importantes
+
+- Não dependas da memória do processo para autenticação em produção.
+- Mantém a `DATABASE_URL` correta no ambiente de produção.
+- Se o projeto for migrado para outra plataforma, a mesma lógica de sessão persistente deve continuar a funcionar.
+- O SQL deve ser executado no banco de produção antes de testar o login em produção.
+
+---
+
+## Scripts úteis
+
+```bash
+npm install
+npm start
 ```
 
-Essa página permite consultar as solicitações de apoio recebidas e aceitar ou recusar pedidos pendentes. O acesso utiliza a mesma sessão do login existente.
+Para validação do servidor:
 
-As APIs usadas pela página são:
-
-- `GET /minhas-solicitacoes-explicador`
-- `PATCH /minhas-solicitacoes-explicador/:id`
-
-Não foram criadas tabelas nem alteradas as tabelas, relações ou dados existentes.
-
-### 7. Criar acesso de um explicador
-
-No **Painel Administrativo**, abra **Gestão académica** e use o formulário **Adicionar explicador**. Preencha o nome, email, especialidade, biografia e uma **password inicial** com pelo menos 8 caracteres.
-
-Ao guardar, o sistema cria uma conta em `utilizadores` com a password protegida por bcrypt, associa-a ao explicador e marca o primeiro acesso como obrigatório. O explicador entra usando o email e a password inicial no botão **Entrar** da página principal. Na primeira entrada será encaminhado para alterar a password; depois poderá abrir:
-
-```text
-http://localhost:3000/explicador.html
+```bash
+node --check server.js
 ```
 
-Se o email já pertencer a uma conta, o sistema não substitui a password existente. Nesse caso, use outro email ou faça a associação de um utilizador existente através do painel.
+---
 
-Se a password inicial tiver sido esquecida ou a conta tiver sido criada antes deste fluxo, abra **Editar** no explicador, introduza uma nova password inicial com pelo menos 8 caracteres e guarde. Essa password será válida para o próximo login e o explicador será novamente encaminhado para alterá-la.
+## Estado do projeto
+
+O projeto está funcional em desenvolvimento local e foi ajustado para funcionar corretamente em ambiente de produção com sessão persistente em base de dados.
