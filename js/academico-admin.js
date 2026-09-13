@@ -7,10 +7,24 @@ const academiaAdmin = {
 
 const $ = (id) => document.getElementById(id);
 const mensagemAcademica = $("mensagemAcademica");
+let temporizadorMensagemAcademica = null;
 
-function mostrarMensagemAcademica(mensagem, tipo = "") {
+function mostrarMensagemAcademica(mensagem, tipo = "", limparDepoisDeMs = 0) {
+    if (temporizadorMensagemAcademica) {
+        clearTimeout(temporizadorMensagemAcademica);
+        temporizadorMensagemAcademica = null;
+    }
+
     mensagemAcademica.textContent = mensagem;
     mensagemAcademica.className = `mensagem ${tipo}`.trim();
+
+    if (limparDepoisDeMs > 0) {
+        temporizadorMensagemAcademica = setTimeout(() => {
+            mensagemAcademica.textContent = "";
+            mensagemAcademica.className = "mensagem";
+            temporizadorMensagemAcademica = null;
+        }, limparDepoisDeMs);
+    }
 }
 
 async function apiAcademica(url, opcoes = {}) {
@@ -241,7 +255,7 @@ $("formAssociacaoAcademica").addEventListener("submit", async (evento) => {
             method: "POST",
             body: JSON.stringify({ explicador_id: Number($("explicadorAssociacao").value) })
         });
-        mostrarMensagemAcademica(dados.mensagem, "mensagem-sucesso");
+        mostrarMensagemAcademica(dados.mensagem, "mensagem-sucesso", 3000);
         evento.currentTarget.reset();
     } catch (erro) { mostrarMensagemAcademica(erro.message, "mensagem-erro"); }
 });
